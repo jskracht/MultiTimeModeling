@@ -12,12 +12,12 @@ expectedR2 <- 0.8
 priorDataFrames <- 50
 numberIterations <- 1000
 variableSelectionMinimum <- 0.1
-trainingPercent <- 0.8
+trainingPercent <- 0.80
 normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
 end <- "2015-01-01"
-futureDataPoints <- 24
+futureDataPoints <- 12
  
 # Fill in Null Data and Normalize
 standardizeData <- function(data){
@@ -92,6 +92,7 @@ causalImpact <- function(completeY, completeData, postY, predictData, startPredi
 	# Kernel Smoothing
 	# kernel <- kernel("daniell", 3)
 	# smooth <- kernapply(as.matrix(impact$series$point.pred), kernel)
+	# plot.ts(smooth)
 
 	impact$series$point.pred[impact$series$point.pred < 0] <- 0
 	impact$series$point.pred[impact$series$point.pred > 1] <- 1
@@ -166,10 +167,11 @@ validatePrediction <- function(completeY, completeData, postY, predictData, endT
 futurePrediction <- function(completeY, completeData, length){
 	# Extrapolate each Indicator Variable
 	ncol <- NCOL(completeData)
-	forecast <- matrix(NA,nrow=futureDataPoints,ncol=ncol)
+	forecast <- matrix(NA, nrow = futureDataPoints, ncol = ncol)
 	for(i in 1 : ncol)
 	{
-		forecast[,i] <- forecast(completeData[,i],h=futureDataPoints)$mean
+		fit <- auto.arima(completeData[,i])
+		forecast[,i] <- forecast(fit, h = futureDataPoints)$mean
 	}
 
 	# Extract and Name y Variable
@@ -178,7 +180,7 @@ futurePrediction <- function(completeY, completeData, length){
 	colnames(forecast)[colnames(forecast) == "col1"] <- "y"
 
 	# Run Model
-	result <- prediction(completeY, completeData, forecastY, forecast, length, length)
+	result <- validatePrediction(completeY, completeData, forecastY, forecast, length, length)
 	return(result)
 }
  
