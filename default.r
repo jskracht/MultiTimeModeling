@@ -19,6 +19,7 @@ start <- "1967-06-01"
 end <- "2015-01-01"
 futureDataPoints <- 12
  
+################## FUNCTIONS ##################
 # Fill in Null Data and Normalize
 standardizeData <- function(data){
 	# Linearly Interpolate Missing Values
@@ -41,10 +42,10 @@ standardizeData <- function(data){
  
 # Build Matrix of Most Significant Variables
 getSignificantVariables <- function(model){
-    variableRelevance = as.big.matrix(model$coefficients)
-    bestVariables = colmax(variableRelevance)
-    variables = subset(bestVariables, bestVariables > variableSelectionMinimum)
-    return(variables)
+	variableRelevance = as.big.matrix(model$coefficients)
+	bestVariables = colmax(variableRelevance)
+	variables = subset(bestVariables, bestVariables > variableSelectionMinimum)
+	return(variables)
 }
  
 # Run Causual Impact
@@ -82,12 +83,12 @@ causalImpact <- function(completeY, completeData, postY, predictData, startPredi
 	# Renormalize Values Outside Range 0:1
 	if(normalize)
 	{
-	                result$median[result$median < 0] <- 0
-	                result$median[result$median > 1] <- 1
+		result$median[result$median < 0] <- 0
+		result$median[result$median > 1] <- 1
 	}
 
 	# Causal Impact
-	impact <- CausalImpact(bsts.model = model, post.period.response = postY)
+	impact <- CausalImpact(bsts.model = model, post.period.response = postY, alpha = .9)
 
 	# Kernel Smoothing
 	# kernel <- kernel("daniell", 3)
