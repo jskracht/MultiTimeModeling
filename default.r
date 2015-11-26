@@ -17,6 +17,7 @@ normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
 end <- "2015-01-01"
+futureDataPoints <- 24
  
 # Fill in Null Data and Normalize
 standardizeData <- function(data){
@@ -104,8 +105,8 @@ causalImpact <- function(completeY, completeData, postY, predictData, startPredi
 	return(impact)
 }
  
-# Run Regular Prediction
-prediction <- function(completeY, completeData, postY, predictData, endTraining, length){
+# Run Validation Prediction
+validatePrediction <- function(completeY, completeData, postY, predictData, endTraining, length){
 	# Remove Post Data
 	predictTrainingData <- completeData[c(1 : endTraining),]
 	predictPreY <- predictTrainingData[,1]
@@ -160,6 +161,26 @@ prediction <- function(completeY, completeData, postY, predictData, endTraining,
 	}
 	return(result)
 }
+
+# Run Future Prediction
+futurePrediction <- function(completeY, completeData, length){
+	# Extrapolate each Indicator Variable
+	ncol <- NCOL(completeData)
+	forecast <- matrix(NA,nrow=futureDataPoints,ncol=ncol)
+	for(i in 1 : ncol)
+	{
+		forecast[,i] <- forecast(completeData[,i],h=futureDataPoints)$mean
+	}
+
+	# Extract and Name y Variable
+	forecastY <- forecast[,1]
+	dimnames(forecast) <- list(rownames(forecast, do.NULL = FALSE, prefix = "row"), colnames(forecast, do.NULL = FALSE, prefix = "col"))
+	colnames(forecast)[colnames(forecast) == "col1"] <- "y"
+
+	# Run Model
+	result <- prediction(completeY, completeData, forecastY, forecast, length, length)
+	return(result)
+}
  
 ################## MAIN ##################
 responseVariable <- "FRED/RECPROUSM156N"
@@ -186,16 +207,5 @@ predictData <- completeData[c(startPrediction : length),]
 postY <- as.vector(completeY[startPrediction : length])
  
 impact <- causalImpact(completeY, completeData, postY, predictData, startPrediction, length)
-validation <- prediction(completeY, completeData, postY, predictData, endTraining, length)
- 
-ncol <- NCOL(completeData)
-h <- 24
-forecast <- matrix(NA,nrow=h,ncol=ncol)
-for(i in 1:ncol)
-{
-	forecast[,i] <- forecast(completeData[,i],h=h)$mean
-}
-forecastY <- forecast[,1]
-dimnames(forecast) <- list(rownames(forecast, do.NULL = FALSE, prefix = "row"), colnames(forecast, do.NULL = FALSE, prefix = "col"))
-colnames(forecast)[colnames(forecast)=="col1"] <- "y"
-result <- prediction(completeY, completeData, forecastY, forecast, length, length)
+validation <- validatePrediction(completeY, completeData, postY, predictData, endTraining, length)
+future <- futurePrediction(completeY, completeData, length)
