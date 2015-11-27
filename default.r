@@ -12,11 +12,11 @@ expectedR2 <- 0.8
 priorDataFrames <- 50
 numberIterations <- 1000
 variableSelectionMinimum <- 0.1
-trainingPercent <- 0.80
+trainingPercent <- 0.8
 normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
-end <- "2015-01-01"
+end <- "2015-10-01"
 futureDataPoints <- 12
  
 ################## FUNCTIONS ##################
