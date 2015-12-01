@@ -188,9 +188,9 @@ futurePrediction <- function(completeY, completeData, length){
 xData <- read.zoo("/Users/Jesh/Downloads/data/data.csv", FUN = as.chron, format = "%m/%d/%Y %H:%M:%S", header = TRUE, sep = ",", index.column = 2)
 xData <- xData[,c(2:NCOL(xData))]
 yData <- read.csv("/Users/Jesh/Downloads/data/faults.csv", sep = ",")
-rawData <- cbind(yData, xData)
+rawData <- cbind(yData, as.matrix(xData))
 
-completeData <- standardizeData(as.zoo(rawData))
+completeData <- standardizeData(rawData)
  
 # Get Split Point
 length <- NROW(completeData)
