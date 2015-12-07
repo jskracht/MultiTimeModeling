@@ -1,7 +1,8 @@
+library(Quandl)
 library(forecast)
 library(CausalImpact)
 library(biganalytics)
-library(chron)
+Quandl.api_key("ti-yR6gd8be4x4yswvy4")
  
 ################## CONSTANTS ##################
 priorSampleSize <- 32
@@ -184,11 +185,22 @@ futurePrediction <- function(completeY, completeData, length){
 }
  
 ################## MAIN ##################
-xData <- read.zoo("/Users/Jesh/Downloads/data/data.csv", FUN = as.chron, format = "%m/%d/%Y %H:%M:%S", header = TRUE, sep = ",", index.column = 2)
-xData <- xData[,c(2:NCOL(xData))]
-yData <- read.csv("/Users/Jesh/Downloads/data/faults.csv", sep = ",")
-rawData <- cbind(yData, as.matrix(xData))
+responseVariable <- read.zoo("/Users/Jesh/Downloads/FRED/R/E/C/RECPROUSM156N.csv", FUN = as.chron, format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
 
+files <- list.files(path="/Users/Jesh/Downloads/FRED", recursive = TRUE, pattern="*.csv")
+indicatorVariables <- matrix(NA, ncol = length(files))
+for(i in 1 : length(files))
+{
+	filename <- paste0("/Users/Jesh/Downloads/FRED/", toString(files[i]))
+	print(filename)
+	indicatorVariables[,i] <- read.zoo(toString(filename), FUN = as.chron, format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
+}
+
+# Pull Data
+rawData <- Quandl(c(toString(responseVariable), indicatorVariables),
+	start_date = toString(start), end_date = toString(end), type = "zoo",
+	collapse = toString(frequency), transform = "normalize")
+ 
 completeData <- standardizeData(rawData)
  
 # Get Split Point

@@ -1,4 +1,3 @@
-library(httr)
 library(Quandl)
 library(forecast)
 library(CausalImpact)
