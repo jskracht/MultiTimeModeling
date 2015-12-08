@@ -188,8 +188,9 @@ futurePrediction <- function(completeY, completeData, length){
 responseVariable <- read.zoo("/Users/Jesh/Downloads/FRED/R/E/C/RECPROUSM156N.csv", format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
 files <- list.files(path="/Users/Jesh/Downloads/FRED", recursive = TRUE, pattern="*.csv")
 setwd("/Users/Jesh/Downloads/FRED")
-rawData <- read.zoo(files, format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
- 
+indicatorVariables <- read.zoo(files, format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
+rawData <- cbind(responseVariable, indicatorVariables) 
+
 completeData <- standardizeData(rawData)
  
 # Get Split Point
