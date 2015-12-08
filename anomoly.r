@@ -1,7 +1,7 @@
 library(forecast)
 library(CausalImpact)
 library(biganalytics)
-library(chron)
+library(zoo)
  
 ################## CONSTANTS ##################
 priorSampleSize <- 32
@@ -12,10 +12,6 @@ numberIterations <- 1000
 variableSelectionMinimum <- 0.1
 trainingPercent <- 0.8
 normalize <- TRUE
-frequency <- "monthly"
-start <- "1967-06-01"
-end <- "2015-10-01"
-futureDataPoints <- 12
  
 ################## FUNCTIONS ##################
 # Fill in Null Data and Normalize
@@ -161,33 +157,20 @@ validatePrediction <- function(completeY, completeData, postY, predictData, endT
 	}
 	return(result)
 }
-
-# Run Future Prediction
-futurePrediction <- function(completeY, completeData, length){
-	# Extrapolate each Indicator Variable
-	ncol <- NCOL(completeData)
-	forecast <- matrix(NA, nrow = futureDataPoints, ncol = ncol)
-	for(i in 1 : ncol)
-	{
-		fit <- auto.arima(completeData[,i])
-		forecast[,i] <- forecast(fit, h = futureDataPoints)$mean
-	}
-
-	# Extract and Name y Variable
-	forecastY <- forecast[,1]
-	dimnames(forecast) <- list(rownames(forecast, do.NULL = FALSE, prefix = "row"), colnames(forecast, do.NULL = FALSE, prefix = "col"))
-	colnames(forecast)[colnames(forecast) == "col1"] <- "y"
-
-	# Run Model
-	result <- validatePrediction(completeY, completeData, forecastY, forecast, length, length)
-	return(result)
-}
  
 ################## MAIN ##################
-xData <- read.zoo("/Users/Jesh/Downloads/data/data.csv", FUN = as.chron, format = "%m/%d/%Y %H:%M:%S", header = TRUE, sep = ",", index.column = 2)
-xData <- xData[,c(2:NCOL(xData))]
-yData <- read.csv("/Users/Jesh/Downloads/data/faults.csv", sep = ",")
-rawData <- cbind(yData, as.matrix(xData))
+setwd("C:/Users/krachtj/Documents/MultiTimeModeling/test/31285C005M20131102_023207")
+responseFiles <- list.files(recursive = TRUE, pattern="FaultCodeData.csv")
+responseVariable <- read.zoo(responseFiles, format = "%Y-%m-%d %H:%M:%S", header = TRUE, sep = ",", index.column = 3, FUN=as.POSIXct, aggregate = head)
+responseVariable <- responseVariable[,1]
+responseVariable[is.na(responseVariable)] <- 0
+responseVariable[!is.na(responseVariable)] <- 1
+indicatorFiles <- list.files(recursive = TRUE, pattern="TestPoints_1Hz.v2.csv")
+indicatorVariables <- read.zoo(indicatorFiles, format = "%m/%d/%Y %H:%M:%S", header = TRUE, sep = ",", index.column = 2, FUN=as.POSIXct, aggregate = head, colClasses=c("numeric", "character", rep("numeric",663)))
+rawData <- cbind(responseVariable, indicatorVariables)
+temp <- rawData[,1]
+temp[is.na(rawData)] <- 0
+rawData[,1] <- temp
 
 completeData <- standardizeData(rawData)
  
@@ -205,4 +188,3 @@ postY <- as.vector(completeY[startPrediction : length])
  
 impact <- causalImpact(completeY, completeData, postY, predictData, startPrediction, length)
 validation <- validatePrediction(completeY, completeData, postY, predictData, endTraining, length)
-future <- futurePrediction(completeY, completeData, length)
