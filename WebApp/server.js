@@ -2,6 +2,7 @@
 var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
+var rbroker = require('rbroker');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 
