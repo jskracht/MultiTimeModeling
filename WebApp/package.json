@@ -1,12 +1,28 @@
 {
-  "name": "starter-node-angular",
-  "main": "server.js",
-  "dependencies": {
-    "express": "~4.5.1",
-    "mongoose": "~3.8.0",
-    "body-parser": "~1.4.2",
-    "method-override": "~2.0.2",
-    "rbroker": "~7.4.0"
-  }
+    "name": "js-example-fraud-score",
+    "version": "0.0.2",
+    "private": "true",
+    "description": "R Analytics Fraud Score Example Application - Powered by DeployR RBroker Framework",
+    "repository": "https://github.com/deployr/js-example-fraud-score.git",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node server.js"
+    },
+    "author": "DeployR - Revolution Analytics Inc.",
+    "main": "server.js",
+    "dependencies": {
+        "deployr": "^7.3.0",
+        "express": "^4.9.5",
+        "primus": "^2.4.8",
+        "primus.io": "^3.1.2",
+        "primus-multiplex": "^3.0.3",
+        "primus-emitter": "^3.0.3",
+        "primus-rooms": "^3.1.0",
+        "rbroker": "^7.3.0",
+        "ws": "^0.4.32"
+    },
+    "devDependencies": {
+        "browserify": "^5.10.0"
+    },
+    "license": "Apache License 2.0"
 }
-

@@ -1,31 +1,65 @@
-// modules =================================================
-var express = require('express');
-var app = express();
-var mongoose = require('mongoose');
-var rbroker = require('rbroker');
-var bodyParser = require('body-parser');
-var methodOverride = require('method-override');
+/*
+ * Copyright (C) 2010-2015 by Revolution Analytics Inc.
+ *
+ * This program is licensed to you under the terms of Version 2.0 of the
+ * Apache License. This program is distributed WITHOUT
+ * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+ * Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0) for more 
+ * details.
+ */
 
-// configuration ===========================================
+var express      = require('express'),
+    Primus       = require('primus.io'),
+    config       = require('./config/config'), 
+    RService     = require('./server/service/rservice'),
+    app          = express(),    
+    router       = express.Router();
 
-// config files
-var db = require('./config/db');
+app.use('/', router);
+app.use(express.static(__dirname + '/client/app'));
 
-var port = process.env.PORT || 8080; // set our port
-// mongoose.connect(db.url); // connect to our mongoDB database (commented out after you enter in your own credentials)
+// -- Start Primus server --
+var server = require('http').createServer(app);
+var primus = new Primus(server, { transformer: 'websockets', parser: 'JSON' });
 
-// get all data/stuff of the body (POST) parameters
-app.use(bodyParser.json()); // parse application/json 
-app.use(bodyParser.json({type: 'application/vnd.api+json'})); // parse application/vnd.api+json as json
-app.use(bodyParser.urlencoded({extended: true})); // parse application/x-www-form-urlencoded
+primus.on('connection', function (spark) {
+    var fraudService = new RService(primus);
+   
+    router.get('/fraud/score/:tasks', function(req, res) {      
+       var tasks = req.params.tasks === 0 ? 1 : req.params.tasks;
+       console.log('REST:/fraud/score/' + tasks + ' called.');
 
-app.use(methodOverride('X-HTTP-Method-Override')); // override with the X-HTTP-Method-Override header in the request. simulate DELETE/PUT
-app.use(express.static(__dirname + '/public')); // set the static files location /public/img will be /img for users
+       for(var i = 0; i < tasks; i++) {
+          fraudService.submit(fraudService.buildTask());
+       }
+       
+       res.json({ success: true });
+    });
 
-// routes ==================================================
-require('./app/routes')(app); // pass our application into our routes
+    router.post('/fraud/pool/init/:size', function (req, res) {
+      var size = req.params.size === 0 ? 1 : req.params.size;
+      console.log('REST:/pool/init/' + size + ' called.');
 
-// start app ===============================================
-app.listen(port);
-console.log('Magic happens on port ' + port); 			// shoutout to the user
-exports = module.exports = app; 						// expose app
+      fraudService.buildPool(size);
+      res.json({ success: true });
+    });
+});
+
+primus.on('disconnection', function () {
+  console.log('disconnect...');
+});
+
+// -- Start server --
+server.listen(config.port, function() {
+  var endpoint = process.env.endpoint || config.endpoint,
+      username = process.env.username || config.credentials.username;
+
+  console.log('\n\n');
+  console.log('==============================================================');
+  console.log(' Project property (DeployR endpoint): ' + endpoint);
+  console.log(' Project property (DeployR username): ' + username);
+  console.log(' Project property (DeployR password): [HIDDEN] \n');
+  console.log('\033[96m Example listening on http://localhost:' + config.port +' \033[39m');
+  console.log('==============================================================');
+});

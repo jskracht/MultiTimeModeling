@@ -1,0 +1,14 @@
+{
+	"endpoint": "http://localhost:8000",
+	"port": "9080",
+	"credentials": {
+	   "username": "testuser",
+	   "password": "Ubuntu12"
+	},
+	"logging": false,
+	"constants" : {
+		"REPO_OWNER": "testuser",
+		"REPO_SCRIPT": "recession_economy.R",
+		"REPO_DIRECTORY": "scripts"
+	}
+}

@@ -1,7 +1,0 @@
-{
-  "directory": "public/libs",
-  //"proxy":"http://proxy1.global.lmco.com:8080",
-  //"https-proxy":"https://proxy1.global.lmco.com:8080",
-  "registry": "http://bower.herokuapp.com",
-  "strict-ssl": false
-}

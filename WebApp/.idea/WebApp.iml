@@ -5,9 +5,5 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="WebApp node_modules" level="project" />
-    <orderEntry type="library" name="mongoose-DefinitelyTyped" level="application" />
-    <orderEntry type="library" name="angularjs-DefinitelyTyped" level="application" />
-    <orderEntry type="library" name="express-DefinitelyTyped" level="application" />
-    <orderEntry type="library" name="jquery-DefinitelyTyped" level="application" />
   </component>
 </module>
