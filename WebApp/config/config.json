@@ -8,7 +8,7 @@
 	"logging": false,
 	"constants" : {
 		"REPO_OWNER": "testuser",
-		"REPO_SCRIPT": "recession_economy.R",
+		"REPO_SCRIPT": "recession_economy.r",
 		"REPO_DIRECTORY": "scripts"
 	}
 }

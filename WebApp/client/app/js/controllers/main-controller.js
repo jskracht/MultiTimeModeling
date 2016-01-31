@@ -1,12 +1,5 @@
 /*
- * Copyright (C) 2010-2015 by Revolution Analytics Inc.
- *
- * This program is licensed to you under the terms of Version 2.0 of the
- * Apache License. This program is distributed WITHOUT
- * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
- * Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0) for more 
- * details.
+ * Copyright (C) 2016 by Jeshua Kracht
  */
 
 /*
@@ -99,7 +92,7 @@ module.exports = function($scope, $http, $location) {
          .success(function(data, status, headers, config) {
             console.log('Attempt to execute tasks succeeded, taskCount=' + $scope.taskCount);
          }).error(function(data, status, headers, config) {
-            $scope.errorMessage = 'Can\'t retrieve scores list!';
+            $scope.errorMessage = 'Can\'t retrieve output!';
             $scope.errorMessage = 'Attempt to execute tasks failed, error=' + data;
          });
    };

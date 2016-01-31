@@ -1,13 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*
- * Copyright (C) 2010-2015 by Revolution Analytics Inc.
- *
- * This program is licensed to you under the terms of Version 2.0 of the
- * Apache License. This program is distributed WITHOUT
- * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
- * Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0) for more 
- * details.
+ * Copyright (C) 2016 by Jeshua Kracht
  */
 
 /*
@@ -100,7 +93,7 @@ module.exports = function($scope, $http, $location) {
          .success(function(data, status, headers, config) {
             console.log('Attempt to execute tasks succeeded, taskCount=' + $scope.taskCount);
          }).error(function(data, status, headers, config) {
-            $scope.errorMessage = 'Can\'t retrieve scores list!';
+            $scope.errorMessage = 'Can\'t retrieve output!';
             $scope.errorMessage = 'Attempt to execute tasks failed, error=' + data;
          });
    };
@@ -157,14 +150,7 @@ module.exports = function($scope, $http, $location) {
 };
 },{}],2:[function(require,module,exports){
 /*
- * Copyright (C) 2010-2015 by Revolution Analytics Inc.
- *
- * This program is licensed to you under the terms of Version 2.0 of the
- * Apache License. This program is distributed WITHOUT
- * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
- * Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0) for more 
- * details.
+ * Copyright (C) 2016 by Jeshua Kracht
  */
 
 (function () {
