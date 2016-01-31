@@ -15,7 +15,7 @@
 
   var mainCtrl = require('./controllers/main-controller');
 
-  angular.module('FraudApp', ['ngRoute', 'ui.bootstrap'])
+  angular.module('RApp', ['ngRoute', 'ui.bootstrap'])
 
   .config([
     '$locationProvider',

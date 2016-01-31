@@ -24,24 +24,24 @@ var server = require('http').createServer(app);
 var primus = new Primus(server, { transformer: 'websockets', parser: 'JSON' });
 
 primus.on('connection', function (spark) {
-    var fraudService = new RService(primus);
+    var rService = new RService(primus);
    
-    router.get('/fraud/score/:tasks', function(req, res) {      
+    router.get('/r/output/:tasks', function(req, res) {
        var tasks = req.params.tasks === 0 ? 1 : req.params.tasks;
-       console.log('REST:/fraud/score/' + tasks + ' called.');
+       console.log('REST:/r/output/' + tasks + ' called.');
 
        for(var i = 0; i < tasks; i++) {
-          fraudService.submit(fraudService.buildTask());
+          rService.submit(rService.buildTask());
        }
        
        res.json({ success: true });
     });
 
-    router.post('/fraud/pool/init/:size', function (req, res) {
+    router.post('/r/pool/init/:size', function (req, res) {
       var size = req.params.size === 0 ? 1 : req.params.size;
       console.log('REST:/pool/init/' + size + ' called.');
 
-      fraudService.buildPool(size);
+      rService.buildPool(size);
       res.json({ success: true });
     });
 });

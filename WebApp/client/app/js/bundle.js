@@ -11,25 +11,25 @@
  */
 
 /*
- * JavaScript Fraud Detection Example Application
+ * JavaScript R Application
  *
  * AngularJS ng-controller
  *
  * Initialization:
  *
- * Establishes WS connection on /fraudengine, subscribes on /topic/fraud.
+ * Establishes WS connection on /r, subscribes on /topic/r.
  *
  * Events:
  *
- * FRAUDSCORE - RTask result message.
+ * ROUTPUT - RTask result message.
  * RUNTIMESTATS - RBroker runtime statistics message.
  * CLIENTALERT - RBroker runtime (error) notification message.
  *
  * User driven (index.html) events:
  *
- * Resize click -> $scope.resizePool() -> POST:/fraud/pool/init/{size}
+ * Resize click -> $scope.resizePool() -> POST:/r/pool/init/{size}
  *
- * Execute click -> $scope.executeTasks() -> GET:/fraud/score/{tasks}
+ * Execute click -> $scope.executeTasks() -> GET:/r/output/{tasks}
  *
  */
 module.exports = function($scope, $http, $location) {
@@ -40,7 +40,7 @@ module.exports = function($scope, $http, $location) {
    $scope.brokerInitialized = false;
    $scope.alertMessage = null;
 
-   $scope.fraudScoreResults = [];
+   $scope.results = [];
    $scope.poolSize = 1;
    $scope.taskCount = 1;
 
@@ -72,13 +72,13 @@ module.exports = function($scope, $http, $location) {
 
       console.log('Attempt to resize pool succeeded, new size=' + $scope.poolSize);
 
-      $http.post('/fraud/pool/init/' + $scope.poolSize)
+      $http.post('/r/pool/init/' + $scope.poolSize)
          .success(function(data, status, headers, config) {
             console.log('Attempt to resize pool succeeded, new size=' + $scope.poolSize);
          }).error(function(data, status, headers, config) {
             $scope.errorMessage = 'Attempt to resize pool failed, error=' + data;
          }).finally(function() {
-            $scope.fraudScoreResults = [];
+            $scope.results = [];
             $scope.brokerInitialized = true;
             $scope.currentTaskThroughput = 0;
             $scope.secondTaskThroughput = 0;
@@ -96,7 +96,7 @@ module.exports = function($scope, $http, $location) {
       $scope.targetTaskThroughput = $scope.taskCount;
       $scope.startTaskThroughput = Date.now();
 
-      $http.get('/fraud/score/' + $scope.taskCount)
+      $http.get('/r/output/' + $scope.taskCount)
          .success(function(data, status, headers, config) {
             console.log('Attempt to execute tasks succeeded, taskCount=' + $scope.taskCount);
          }).error(function(data, status, headers, config) {
@@ -110,9 +110,9 @@ module.exports = function($scope, $http, $location) {
    // Subscribe for events on /topic/fraud.
    primus.on('open', function() {
 
-      primus.on('/topic/fraud', function(msgObj) {
+      primus.on('/topic/r', function(msgObj) {
 
-         if (msgObj.msgType === 'FRAUDSCORE') {
+         if (msgObj.msgType === 'ROUTPUT') {
 
             var elapsedTime = Date.now() - $scope.startTaskThroughput;
 
@@ -127,12 +127,12 @@ module.exports = function($scope, $http, $location) {
                $scope.minuteTaskThroughput =
                   Math.round($scope.secondTaskThroughput * 60);
 
-               // Discard older fraudScore from fraudScoreResults
+               // Discard older results from results
                // list to prevent browser rendering exhaustion.
-               if ($scope.fraudScoreResults.length > 300) {
-                  $scope.fraudScoreResults.length = 150;
+               if ($scope.results.length > 300) {
+                  $scope.results.length = 150;
                }
-               $scope.fraudScoreResults.unshift(msgObj);
+               $scope.results.unshift(msgObj);
             });
 
          } else if (msgObj.msgType === 'RUNTIMESTATS') {
@@ -173,7 +173,7 @@ module.exports = function($scope, $http, $location) {
 
   var mainCtrl = require('./controllers/main-controller');
 
-  angular.module('FraudApp', ['ngRoute', 'ui.bootstrap'])
+  angular.module('RApp', ['ngRoute', 'ui.bootstrap'])
 
   .config([
     '$locationProvider',

@@ -1,9 +1,9 @@
 {
-    "name": "js-example-fraud-score",
+    "name": "r-analytics",
     "version": "0.0.2",
     "private": "true",
-    "description": "R Analytics Fraud Score Example Application - Powered by DeployR RBroker Framework",
-    "repository": "https://github.com/deployr/js-example-fraud-score.git",
+    "description": "R Analytics - Powered by DeployR RBroker Framework",
+    "repository": "https://github.com/jskracht/MultiTimeModeling.git",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "node server.js"

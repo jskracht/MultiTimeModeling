@@ -89,7 +89,7 @@
         </div>
         <div class="row stats">
             <div class="col-md-12">
-                <h5>Fraud Task Throughput</h5>
+                <h5>R Task Throughput</h5>
             </div>
         </div>
         <div class="row stats">
@@ -129,15 +129,15 @@
     <div class="panel panel-default runtime">
         <div class="panel-heading clearfix">
             <h5 class="panel-title pull-left">
-                <a tooltip-placement="bottom" tooltip="This demo application performs real-time scoring on user account data to determine the risk of fraudulent transactions.">
-                    Fraud Analysis
+                <a tooltip-placement="bottom" tooltip="Run R Script">
+                    R Analysis
                 </a>
             </h5>
             <div class="pull-right">
                 <span><b>Task Count:</b>
                 </span>
                 <input name="tc" ng-model="taskCount" ng-disabled="!brokerInitialized" type="number" min="1" max="100000" step="1" value="1" />
-                <a class="btn btn-primary btn-xs" ng-disabled="!brokerInitialized" tooltip-placement="bottom" tooltip="Submit simulated account data for real-time scoring. Each set of account data is executed as an RTask using the RBroker runtime where a fraud score is generated and returned." ng-disabled="!brokerInitialized" ng-click="executeTasks()">Execute 
+                <a class="btn btn-primary btn-xs" ng-disabled="!brokerInitialized" tooltip-placement="bottom" tooltip="Run R Script" ng-disabled="!brokerInitialized" ng-click="executeTasks()">Execute
                     <span class="glyphicon glyphicon-repeat"></span>
                 </a>
             </div>
@@ -149,17 +149,11 @@
         </div>
         <table class="table table-hover table-striped table-condensed">
             <thead>
-                <th class="col-md-3">Account Balance</th>
-                <th class="col-md-3">Transactions</th>
-                <th class="col-md-3">Credit</th>
-                <th class="col-md-3">Fraud Score</th>
+                <th class="col-md-3">Success</th>
             </thead>
             <tbody>
-                <tr ng-repeat="fraudScoreResult in fraudScoreResults">
-                    <td>{{fraudScoreResult.balance}}</td>
-                    <td>{{fraudScoreResult.transactions}}</td>
-                    <td>{{fraudScoreResult.credit}}</td>
-                    <td>{{fraudScoreResult.score}}</td>
+                <tr ng-repeat="result in results">
+                    <td>{{result.success}}</td>
                 </tr>
             </tbody>
         </table>
