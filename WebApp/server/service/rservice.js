@@ -63,7 +63,6 @@ RService.prototype = {
             filename: config.constants.REPO_SCRIPT,
             directory: config.constants.REPO_DIRECTORY,
             author: this.brokerConfig.credentials.username,
-            routputs: ['length']
         });
     },
 

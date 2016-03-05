@@ -3,12 +3,12 @@
 	"port": "9080",
 	"credentials": {
 	   "username": "testuser",
-	   "password": "Ubuntu12"
+	   "password": "changeme"
 	},
 	"logging": false,
 	"constants" : {
 		"REPO_OWNER": "testuser",
-		"REPO_SCRIPT": "recession_economy.r",
-		"REPO_DIRECTORY": "scripts"
+		"REPO_SCRIPT": "script.r",
+		"REPO_DIRECTORY": "root"
 	}
 }
