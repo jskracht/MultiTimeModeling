@@ -75,9 +75,9 @@ In order to expand my understanding and test the model further, I used the auto.
 ### Sample Output
 **Model Fit**
 
-Black Line: Probability of Recession
-Dashed Blue: Model Fit
-Light Blue: Prediction Variance
+Black Line: Probability of Recession<br />
+Dashed Blue: Model Fit<br />
+Light Blue: Prediction Variance<br />
 Dashed Grey Vertical Line: Separation of Pre/Post Period
 
 ![Model Fit Output]
@@ -93,21 +93,23 @@ Dashed Grey Vertical Line: Separation of Pre/Post Period
 ![Prediction Beyond Known]
 (https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Prediction Beyond Known.png)
 
-### References
-http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/41854.pdf
-http://statmath.wu.ac.at/research/talks/resources/slidesscott.pdf https://research.stlouisfed.org/fred2/
-https://www.quandl.com/tools/r http://jeremykun.com/2015/04/06/markov-chain-monte-carlo-without-all-the-bullshit/
-http://robjhyndman.com/talks/MelbourneRUG.pdf
-https://github.com/cran/bsts
-https://github.com/google/CausalImpact
-https://cran.r-project.org/web/packages/forecast/forecast.pdf
-https://cran.r-project.org/web/packages/biganalytics/biganalytics.pdf
-http://www.inside-r.org/r-doc/stats/kernel
-https://www.khanacademy.org/math/probability/probability-and-combinatorics-topic/probability_combinatorics/v/conditional-probability-and-combinations
-https://www.youtube.com/watch?v=12eZWG0Z5gY
-http://www-stat.wharton.upenn.edu/~edgeorge/Research_papers/GeorgeMcCulloch97.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf
-http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al%20Mol%20Biol%20Evol%202003.pdf
-http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf
-http://arxiv.org/pdf/math/0505633.pdf
+### References:
+http://static.googleusercontent.com/media/research.google.com/en/pubs/archive/41854.pdf<br />
+http://statmath.wu.ac.at/research/talks/resources/slidesscott.pdf<br />
+https://research.stlouisfed.org/fred2/<br />
+https://www.quandl.com/tools/r<br />
+http://jeremykun.com/2015/04/06/markov-chain-monte-carlo-without-all-the-bullshit/<br />
+http://robjhyndman.com/talks/MelbourneRUG.pdf<br />
+https://github.com/cran/bsts<br />
+https://github.com/google/CausalImpact<br />
+https://cran.r-project.org/web/packages/forecast/forecast.pdf<br />
+https://cran.r-project.org/web/packages/biganalytics/biganalytics.pdf<br />
+http://www.inside-r.org/r-doc/stats/kernel<br />
+https://www.khanacademy.org/math/probability/probability-and-combinatorics-topic/probability_combinatorics/v/conditional-probability-and-combinations<br />
+https://www.youtube.com/watch?v=12eZWG0Z5gY<br />
+http://www-stat.wharton.upenn.edu/~edgeorge/Research_papers/GeorgeMcCulloch97.pdf<br />
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf<br />
+http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf<br />
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al%20Mol%20Biol%20Evol%202003.pdf<br />
+http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf<br />
+http://arxiv.org/pdf/math/0505633.pdf<br />
