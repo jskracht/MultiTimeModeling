@@ -73,8 +73,7 @@ Once the modeling was complete, I used Daniell Kernel Smoothing with a window si
 In order to expand my understanding and test the model further, I used the auto.arima R function which uses Akaike and Bayesian Information Criterion penalties to select the best model for each x time series. Once a model was selected, I used each to forecast 12 months of future values for each x. Using all the historical data as training data, I built custom a new Bayesian Structural Time Series model to predict future values of y. Because I only used data though Jan 2015 to train my original validation model I still have 11 months of historical data to compare to my results of y based on my predicted future values of each x. Once again, my results match actual almost perfectly, indicating a minor spike in the probability of recession happening right now, see graph 3.
 
 ### Sample Output
-**Model Fit**
-
+**Model Fit**<br />
 Black Line: Probability of Recession<br />
 Dashed Blue: Model Fit<br />
 Light Blue: Prediction Variance<br />
