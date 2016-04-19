@@ -23,7 +23,7 @@ The Federal Reserve has a huge amount of data on the economy of the United State
 4. Given the current state, model parameters, and y, calculate Spike and Slab prior (built in
 variable selection).
 
-[Link to Spike and Slab Prior Paper!](http://arxiv.org/pdf/math/0505633.pdf)
+[Link to Spike and Slab Prior Paper](http://arxiv.org/pdf/math/0505633.pdf)
 
 5. Use Markov Chain Monte Carlo regression to sample at specific probability interval based on Spike and Slab prior.
 
@@ -33,13 +33,13 @@ See Detailed model form description below.
 7. Using Bayesian output, predict value of y for remaining test data.
 8. Kernel Smooth output (where applicable).
 
-[Link to Daniell Kernel Explaination!](http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf)
+[Link to Daniell Kernel Explaination](http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf)
 
 9. Restrict output value range.
 10. Validate actual vs. model prediction (visual inspection).
 11. If validation succeeds, choose and build the best AutoRegressive Integrated Moving Average model for each x time series based on Akaike and Bayesian Information Criterion penalties.
 
-[Link to Akaike and Bayesian Information Criterion Paper!](http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf)
+[Link to Akaike and Bayesian Information Criterion Paper](http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf)
 
 12. Forecast n number of future values for each x time series based on selected model.
 13. Repeat steps 3-7 using all historical values as training data and forecasted values of x to
