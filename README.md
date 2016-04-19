@@ -1,10 +1,10 @@
-## Prediction Using Bayesian Structural Time Series
+# Prediction Using Bayesian Structural Time Series
 Jeshua Kracht
 
-# Technical Problem:
+### Technical Problem:
 The Federal Reserve has a huge amount of data on the economy of the United States containing information of varying accuracy, relevance, and completeness. Many times series contain vital data about the state of the economy, but do not tell the whole story by themselves. Often, in hindsight, many indicator variables forecasted recessions and depressions before the markets crashed. Detecting symptoms of impending recession across hundreds of time series can be difficult. Much of the available data is noisy and, because of the ever changing nature of the economy, each recession has a slightly different signature. The challenge is to intelligently pair down dimensions and dynamically recognize warning signs based on prior multivariate time series data values without overfitting to only recognize historical recessions. This problem space is applicable to a massive number of problems and, as such, my solution is generic enough to work with essentially any multivariate time series prediction problem.
 
-# DSDP Description:
+### DSDP Description:
 1. Fill in missing and sparse data using Cubic Spline Interpolation.
 
 ![Cubic Spline Interpolation]
@@ -63,7 +63,7 @@ Where the model parameters are θ = {σε,σu,σv,σw,β} and the state is α = 
 
 Spike and Slab is vital to the Markov Chain Monte Carlo calculations because it serves as the penalty function. The Markov Chain Monte Carlo calculations use this penalty and Bayesian induction algorithm over n iterations to do variable selection.
 
-# DSDP Applied:
+### DSDP Applied:
 Using the Quandl economic data API, I retrieved the 281 time series, available from the Federal Reserve Economic Data set, to use in predicting the probability of recession. The 281 variables were selected based on two complimentary ontologies available on the Federal Reserve Economic Data website. These variables vary greatly in start date, completeness, and frequency. By backfilling 0 values into the data for time series that began later than 1967, which is the first datapoint for y, I was able to pass valid data to the model without affecting the accuracy of the prediction. Additionally, I filled in missing month values from yearly and quarterly series using cubic spline interpolation. This noise created more variance, but produced more accurate results. My dataset contains 571 month data-points from Jun 1967 to Jan 2015. The first 80% of months were used to train the model and the last 20% were used for testing. Before passing the data to the model, I normalized all the data to range from 0 to 1.
 
 CausalImpact, the R function that creates a Bayesian Structural Time Series model which, in turn, runs the Spike Slab and Markov Chain Monte Carlo calculations, accepts a few optional parameters: the number of iterations, the number and length of seasons, the confidence interval, and a custom Bayesian Structural Time Series model. After meticulously experimenting with each parameter, the only parameter I changed from its default value was “alpha”, the confidence interval. By default, the confidence interval is 95%, but by changing it to 90% I was able to significantly improve the predictive accuracy of the model. No significant improvement could be made by increasing the number of iterations or providing a custom Bayesian Structural Time Series model. By setting the number of seasons to two with a length of 6 months I was able to improve the accuracy of the prediction slightly, but at the cost of a large increase in variance. Additionally, to gain a better understanding of the inner workings of the Bayesian Structural Time Series model itself, I built a custom Bayesian Structural Time Series model with many custom parameters set and ran the prediction myself without CausalImpact, achieving almost identical results.
@@ -72,7 +72,7 @@ Once the modeling was complete, I used Daniell Kernel Smoothing with a window si
 
 In order to expand my understanding and test the model further, I used the auto.arima R function which uses Akaike and Bayesian Information Criterion penalties to select the best model for each x time series. Once a model was selected, I used each to forecast 12 months of future values for each x. Using all the historical data as training data, I built custom a new Bayesian Structural Time Series model to predict future values of y. Because I only used data though Jan 2015 to train my original validation model I still have 11 months of historical data to compare to my results of y based on my predicted future values of each x. Once again, my results match actual almost perfectly, indicating a minor spike in the probability of recession happening right now, see graph 3.
 
-# Sample Output
+### Sample Output
 MODEL FIT:
 Black Line: Probability of Recession
 Dashed Blue: Model Fit
@@ -92,7 +92,7 @@ Prediction Beyond Known
 ![Prediction Beyond Known]
 (https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Prediction Beyond Known.png)
 
-# References
+### References
 http://static.googleusercontent.com/media/research.google.com/en//pubs/archive/41854.pdf
 http://statmath.wu.ac.at/research/talks/resources/slidesscott.pdf https://research.stlouisfed.org/fred2/
 https://www.quandl.com/tools/r http://jeremykun.com/2015/04/06/markov-chain-monte-carlo-without-all-the-bullshit/
@@ -102,9 +102,9 @@ https://github.com/google/CausalImpact
 https://cran.r-project.org/web/packages/forecast/forecast.pdf
 https://cran.r-project.org/web/packages/biganalytics/biganalytics.pdf
 http://www.inside-r.org/r-doc/stats/kernel
-https://www.khanacademy.org/math/probability/probability-and-combinatorics-topic/probability_combinatorics/v/ conditional-probability-and-combinations
+https://www.khanacademy.org/math/probability/probability-and-combinatorics-topic/probability_combinatorics/v/conditional-probability-and-combinations
 https://www.youtube.com/watch?v=12eZWG0Z5gY
 http://www-stat.wharton.upenn.edu/~edgeorge/Research_papers/GeorgeMcCulloch97.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and %20Buckley%20Syst%20Biol%202004.pdf http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al %20Mol%20Biol%20Evol%202003.pdf http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al%20Mol%20Biol%20Evol%202003.pdf http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf
 http://arxiv.org/pdf/math/0505633.pdf
