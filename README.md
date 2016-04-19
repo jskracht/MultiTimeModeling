@@ -73,7 +73,8 @@ Once the modeling was complete, I used Daniell Kernel Smoothing with a window si
 In order to expand my understanding and test the model further, I used the auto.arima R function which uses Akaike and Bayesian Information Criterion penalties to select the best model for each x time series. Once a model was selected, I used each to forecast 12 months of future values for each x. Using all the historical data as training data, I built custom a new Bayesian Structural Time Series model to predict future values of y. Because I only used data though Jan 2015 to train my original validation model I still have 11 months of historical data to compare to my results of y based on my predicted future values of each x. Once again, my results match actual almost perfectly, indicating a minor spike in the probability of recession happening right now, see graph 3.
 
 ### Sample Output
-MODEL FIT:
+**Model Fit**
+
 Black Line: Probability of Recession
 Dashed Blue: Model Fit
 Light Blue: Prediction Variance
@@ -82,12 +83,12 @@ Dashed Grey Vertical Line: Separation of Pre/Post Period
 ![Model Fit Output]
 (https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Model Fit Output.png)
 
-Model Validation
+**Model Validation**
 
 ![Model Validation Output]
 (https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Model Validation Output.png)
 
-Prediction Beyond Known
+**Prediction Beyond Known**
 
 ![Prediction Beyond Known]
 (https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Prediction Beyond Known.png)
@@ -105,6 +106,8 @@ http://www.inside-r.org/r-doc/stats/kernel
 https://www.khanacademy.org/math/probability/probability-and-combinatorics-topic/probability_combinatorics/v/conditional-probability-and-combinations
 https://www.youtube.com/watch?v=12eZWG0Z5gY
 http://www-stat.wharton.upenn.edu/~edgeorge/Research_papers/GeorgeMcCulloch97.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf
-http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al%20Mol%20Biol%20Evol%202003.pdf http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Posada%20and%20Buckley%20Syst%20Biol%202004.pdf
+http://www.stat.purdue.edu/~mlevins/STAT598K_2012/Box_Pierce_1970.pdf
+http://xyala2.bio.ed.ac.uk/teaching/tutorials/phylogenetics/Bayesian_Workshop/PDFs/Alfaro%20et%20al%20Mol%20Biol%20Evol%202003.pdf
+http://www.stat.berkeley.edu/~aditya/resources/LectureTWENTYSIX.pdf
 http://arxiv.org/pdf/math/0505633.pdf
