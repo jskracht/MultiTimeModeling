@@ -1,9 +1,14 @@
-library(Quandl)
 library(forecast)
 library(CausalImpact)
 library(biganalytics)
-Quandl.api_key("ti-yR6gd8be4x4yswvy4")
- 
+
+spark_path <- strsplit(system("brew info apache-spark",intern=T)[4],' ')[[1]][1] # Get your spark path
+.libPaths(c(file.path(spark_path,"libexec", "R", "lib"), .libPaths())) # Navigate to SparkR folder
+Sys.setenv('SPARKR_SUBMIT_ARGS'='"--packages" "com.databricks:spark-csv_2.10:1.3.0" "sparkr-shell"') # Load SparkR CSV Library
+library(SparkR)
+sc <- sparkR.init() # Initialize Spark
+sqlContext <- sparkRSQL.init(sc)
+
 ################## CONSTANTS ##################
 priorSampleSize <- 32
 expectedModelSize <- 3
@@ -15,7 +20,7 @@ trainingPercent <- 0.8
 normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
-end <- "2015-10-01"
+end <- "2016-04-01"
 futureDataPoints <- 12
  
 ################## FUNCTIONS ##################
@@ -185,10 +190,12 @@ futurePrediction <- function(completeY, completeData, length){
 }
  
 ################## MAIN ##################
-responseVariable <- read.zoo("/Users/Jesh/Downloads/FRED/R/E/C/RECPROUSM156N.csv", format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
-files <- list.files(path="/Users/Jesh/Downloads/FRED", recursive = TRUE, pattern="*.csv")
-setwd("/Users/Jesh/Downloads/FRED")
-indicatorVariables <- read.zoo(files, format = "%Y-%m-%d", header = TRUE, sep = ",", index.column = 1)
+responseVariable <- read.df(sqlContext, "/Users/Jesh/Documents/Project/FRED/R/E/C/RECPROUSM156N.csv", "com.databricks.spark.csv", header="true", inferSchema="true")
+files <- list.files(path="/Users/Jesh/Documents/Project/FRED", recursive = TRUE, pattern="*.csv")
+setwd("/Users/Jesh/Documents/Project/FRED")
+for (file in files){
+  indicatorVariables <- read.df(sqlContext, file, "com.databricks.spark.csv", header="true", inferSchema="true")
+}
 rawData <- cbind(responseVariable, indicatorVariables) 
 
 completeData <- standardizeData(rawData)
