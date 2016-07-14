@@ -14,12 +14,12 @@ The Federal Reserve has a huge amount of data on the economy of the United State
 1. Fill in missing and sparse data using Cubic Spline Interpolation.
 
 ![Cubic Spline Interpolation]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Cubic Spline Interpolation.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Cubic Spline Interpolation.png)
 
 2. Normalize values.
 
 ![Normalize]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Normalize.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme//Normalize.png)
 
 3. Pass training data to model.
 4. Given the current state, model parameters, and y, calculate Spike and Slab prior (built in
@@ -55,7 +55,7 @@ The tool, Causal Impact, is heavily based on Bayesian Structural Time Series and
   The model form is a Markov Chain Monte Carlo Bayesian approach.
 
 ![Bayesian Markov Chain Monte Carlo]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Bayesian Markov Chain Monte Carlo.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Bayesian Markov Chain Monte Carlo.png)
 
 Where the model parameters are θ = {σε,σu,σv,σw,β} and the state is α = {α1,...,αn}, the Markov Chain Monte Carlo algorithm is:
 
@@ -86,17 +86,17 @@ Light Blue: Prediction Variance<br />
 Dashed Grey Vertical Line: Separation of Pre/Post Period
 
 ![Model Fit Output]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Model Fit Output.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Model Fit Output.png)
 
 **Model Validation**
 
 ![Model Validation Output]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Model Validation Output.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Model Validation Output.png)
 
 **Prediction Beyond Known**
 
 ![Prediction Beyond Known]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/WebApp/readme/Prediction Beyond Known.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Prediction Beyond Known.png)
 
 ### References:
 http://static.googleusercontent.com/media/research.google.com/en/pubs/archive/41854.pdf<br />
