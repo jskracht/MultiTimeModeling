@@ -18,7 +18,7 @@ The Federal Reserve has a huge amount of data on the economy of the United State
 2. Normalize values.
 
 ![Normalize]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme//Normalize.png)
+(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Normalize.png)
 
 3. Pass training data to model.
 4. Given the current state, model parameters, and y, calculate Spike and Slab prior (built in
