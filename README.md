@@ -2,7 +2,7 @@
 Jeshua Kracht
 
 ### Requirements:
-**Currently based on R, being transitioned to Apache Spark, Scala, Hadoop HDFS, and Hadoop MapReduce**<br />
+**Currently based on R, being transitioned to Spark/Scala/Hadoop**<br />
 
 *Tested on Ubuntu 16.04 and Mac OS X Sierra*
 
