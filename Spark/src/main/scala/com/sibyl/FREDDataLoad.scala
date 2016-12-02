@@ -1,17 +1,23 @@
 package com.sibyl
 
+import java.util.Date
 import scala.collection.immutable.Seq
 import scala.io.Source
-import scala.xml.Node
 import scalaj.http.{Http, HttpResponse}
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by Jesh on 11/27/16.
   */
 object FREDDataLoad {
-  case class Observation(date: String, value: String)
+  case class Observation(date: Date, value: Double)
 
   def main(args: Array[String]): Unit = {
+    // Context Setup
+    val conf = new SparkConf().setAppName("Sibyl").setMaster("local")
+    val sc = new SparkContext(conf)
+
+    // Load Data
     val seriesIds = Source.fromFile("data/seriesList").getLines()
     val seriesCount = seriesIds.length
     var count = 0
@@ -25,24 +31,21 @@ object FREDDataLoad {
   }
 
   def loadSeriesFromAPI(seriesId: String): Seq[Observation] = {
-    val response: HttpResponse[String] = Http("https://api.stlouisfed.org/fred/series/observations").param("series_id", seriesId).param("api_key", "0ed28d55d3e9655415b8e31652c8a952").asString
+    val response: HttpResponse[String] = Http("https://api.stlouisfed.org/fred/series/observations").param("series_id", seriesId).param("realtime_start", "1930-01-01").param("api_key", "0ed28d55d3e9655415b8e31652c8a952").asString
     val xml = scala.xml.XML.loadString(response.body)
-    val data = (xml \\ "observations")
+    val format = new java.text.SimpleDateFormat("yyyy-MM-dd")
     val observations = (xml \\ "observation").map { observation =>
-      Observation((observation \\ "@date").text, (observation \\ "@value").text)
+      Observation(format.parse((observation \\ "@date").text), toDouble((observation \\ "@value").text))
     }
-    return observations
+    observations
   }
 
-  def handleEmptyIntNode(node: Option[Seq[Node]], default: Int = 0): Int = {
-    if(node.isEmpty) default
-    else if(node.get.isEmpty) default
-    else node.get(0).text.toInt
-  }
-
-  def handleEmptyStringNode(node: Option[Seq[Node]], default: String = ""): String = {
-    if(node.isEmpty) default
-    else if(node.get.isEmpty) default
-    else node.get(0).text
+  def toDouble(value: String):Double = {
+    try {
+      return value.toDouble
+    } catch {
+      case e: NumberFormatException => None
+    }
+    null.asInstanceOf[Double]
   }
 }
