@@ -2,10 +2,9 @@
 Jeshua Kracht
 
 ### Requirements:
-**Revolution R Open, DeployR Server, Hadoop HDFS, Hadoop MapReduce, Math Kernal Library, and MongoDB**<br />
-**R Packages:** Causal Impact, Quandl, biganalytics, forecast, rJava, Rcpp, RJSONIO, bitops, digest, functional, stringr, plyr, reshape2, dplyr, R.methodsS3, caTools, Hmisc, data.table, rhdfs, rmr2, and plyrmr
+**Currently based on R, being transitioned to Apache Spark, Scala, Hadoop HDFS, and Hadoop MapReduce**<br />
 
-*Tested on Fedora 23, Ubuntu 14.10, and Mac OS X El Capitan*
+*Tested on Ubuntu 16.04 and Mac OS X Sierra*
 
 ### Technical Problem:
 The Federal Reserve has a huge amount of data on the economy of the United States containing information of varying accuracy, relevance, and completeness. Many times series contain vital data about the state of the economy, but do not tell the whole story by themselves. Often, in hindsight, many indicator variables forecasted recessions and depressions before the markets crashed. Detecting symptoms of impending recession across hundreds of time series can be difficult. Much of the available data is noisy and, because of the ever changing nature of the economy, each recession has a slightly different signature. The challenge is to intelligently pair down dimensions and dynamically recognize warning signs based on prior multivariate time series data values without overfitting to only recognize historical recessions. This problem space is applicable to a massive number of problems and, as such, my solution is generic enough to work with essentially any multivariate time series prediction problem.
