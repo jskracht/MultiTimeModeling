@@ -37,8 +37,6 @@ object FREDDataLoad {
     bw.close()
 
     val observations = StructType(Array(
-      StructField("realtime_start", TimestampType, true),
-      StructField("realtime_end", TimestampType, true),
       StructField("date", TimestampType, true),
       StructField("value", StringType, true)))
     val schema = StructType(Array(
