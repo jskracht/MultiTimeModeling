@@ -1,14 +1,10 @@
 package com.sibyl
 
 import java.io._
-import java.util.Date
-
-import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
-
 import scala.io.Source
 import scalaj.http.{Http, HttpResponse}
 import com.databricks.spark.xml
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.{StructField, _}
 
 import scala.collection.mutable
@@ -47,10 +43,10 @@ object FREDDataLoad {
     bw.close()
 
     val observations = StructType(Array(
-      StructField("_date", DateType, true),
-      StructField("_value", DoubleType, true)))
+      StructField("_date", DateType, nullable = true),
+      StructField("_value", DoubleType, nullable = true)))
     val schema = StructType(Array(
-      StructField("observation", ArrayType(observations, true), true)))
+      StructField("observation", ArrayType(observations, containsNull = true), nullable = true)))
 
     val series = spark.sqlContext.read.format("com.databricks.spark.xml").option("rowTag", "observations").option("nullValue", ".").schema(schema).load("data/temp.xml")
     for (test <- series.select("observation._value").head.toSeq.head.asInstanceOf[mutable.WrappedArray[Double]].iterator)
