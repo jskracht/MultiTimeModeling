@@ -1,19 +1,23 @@
 package com.sibyl
 
 import java.io._
+import java.sql.Date
+
 import scala.io.Source
 import scalaj.http.{Http, HttpResponse}
-import com.databricks.spark.xml
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.{StructField, _}
-
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.functions.explode
+import org.apache.spark.sql.functions.col
 import scala.collection.mutable
 
 /**
   * Created by Jesh on 11/27/16.
   */
 object FREDDataLoad {
-  case class Observation(observation: Array[String])
+  case class Value(date: Date, value: Double)
+  case class Observation(value: Value)
 
   def main(args: Array[String]): Unit = {
     // Session Setup (http://spark.apache.org/docs/latest/submitting-applications.html#master-urls)
@@ -31,7 +35,7 @@ object FREDDataLoad {
       }
       println(count + " of " + seriesCount + " imported")
       count = count + 1
-      //allSeries.show()
+      allSeries.show()
     }
   }
 
@@ -48,11 +52,8 @@ object FREDDataLoad {
     val schema = StructType(Array(
       StructField("observation", ArrayType(observations, containsNull = true), nullable = true)))
 
-    val series = spark.sqlContext.read.format("com.databricks.spark.xml").option("rowTag", "observations").option("nullValue", ".").schema(schema).load("data/temp.xml")
-    for (test <- series.select("observation._value").head.toSeq.head.asInstanceOf[mutable.WrappedArray[Double]].iterator)
-      {
-        println(test)
-      }
+    val series = spark.sqlContext.read.format("com.databricks.spark.xml").option("rowTag", "observations").option("nullValue", ".").schema(schema).load("data/temp.xml").select(explode(col("observation")).as("collection")).select(col("collection.*"))
+
     series
   }
 }
