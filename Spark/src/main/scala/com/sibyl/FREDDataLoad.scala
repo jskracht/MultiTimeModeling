@@ -1,7 +1,6 @@
 package com.sibyl
 
 import java.io._
-
 import scala.io.Source
 import scalaj.http.{Http, HttpResponse}
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -52,11 +51,7 @@ object FREDDataLoad {
       StructField("observation", ArrayType(observations, containsNull = true), nullable = true)))
 
     val series = spark.sqlContext.read.format("com.databricks.spark.xml").option("rowTag", "observations").option("nullValue", ".").schema(schema).load("data/temp.xml").select(explode(col("observation")).as("collection")).select(col("collection.*")).withColumnRenamed("_date", seriesId + "_date").withColumnRenamed("_value", seriesId + "_value")
+    series.show()
     series
-  }
-
-  def getTimeSeries(seriesId: String, dataset: DataFrame): DataFrame = {
-    val timeSeries = dataset.select(explode(col("observation")).as("collection")).select(col("collection.*"))
-    timeSeries
   }
 }
