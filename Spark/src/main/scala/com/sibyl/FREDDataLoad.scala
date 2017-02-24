@@ -1,57 +1,81 @@
 package com.sibyl
 
-import java.io._
+import java.sql.Timestamp
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.util.Date
+
+import com.cloudera.sparkts.{BusinessDayFrequency, DateTimeIndex, TimeSeriesRDD}
+import org.apache.spark.sql.{Row, SparkSession}
+
 import scala.io.Source
-import scalaj.http.{Http, HttpResponse}
-import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.types.{StructField, _}
+import scala.util.parsing.json._
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.functions.explode
-import org.apache.spark.sql.functions.col
 
-/**
-  * Created by Jesh on 11/27/16.
-  */
-object FREDDataLoad {
+object FREDDataLoad extends App {
+  case class Point(timestamp: Timestamp, value: Double)
+  case class Series(id: String, points: List[Point])
+  val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
 
-  def main(args: Array[String]): Unit = {
-    // Session Setup (http://spark.apache.org/docs/latest/submitting-applications.html#master-urls)
-    val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
+  @throws(classOf[java.io.IOException])
+  @throws(classOf[java.net.SocketTimeoutException])
+  def get(url: String,
+          connectTimeout:Int =5000,
+          readTimeout:Int =5000,
+          requestMethod: String = "GET"): String = {
+    import java.net.{HttpURLConnection, URL}
+    val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
+    connection.setConnectTimeout(connectTimeout)
+    connection.setReadTimeout(readTimeout)
+    connection.setRequestMethod(requestMethod)
+    val inputStream = connection.getInputStream
+    val content = Source.fromInputStream(inputStream).mkString
+    if (inputStream != null) inputStream.close()
+    content
+  }
 
-    // Load Data
-    val seriesIds = Source.fromFile("data/seriesList").getLines().toList
-    val seriesCount = seriesIds.length
-    var count = 1
-    val schema = StructType(Array(
-      StructField("date", DateType, nullable = false)))
-    var allSeries = spark.read.schema(schema).csv("data/dates").toDF()
-    for (seriesId <- Source.fromFile("data/seriesList").getLines()) {
-      if (count > 1) {
-        val series = loadSeriesFromAPI(seriesId, spark)
-        allSeries = allSeries.join(series, allSeries.col("date") === series.col(seriesId + "_date"), "outer")
-        allSeries = allSeries.drop(seriesId + "_date")
-      }
-      println(count + " of " + seriesCount + " imported")
-      count = count + 1
-      allSeries.show()
+  def convertStringToDate(date: String): Timestamp = Timestamp.from(ZonedDateTime.of(LocalDateTime.parse(date + "T00:00:00"), ZoneId.systemDefault()).toInstant)
+
+  def parseDoubleOrZero(value : String): Double = try { value.toDouble }  catch { case _ :Exception => null.asInstanceOf[Double] }
+
+  var rows = scala.collection.mutable.ListBuffer[Row]()
+  var parallelLists = scala.collection.mutable.Buffer[Series]()
+  val seriesIds = Source.fromFile("data/seriesList2").getLines().toList
+  for (series <- seriesIds) {
+    println("Fetching Series: " + series)
+
+    val content = get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json".
+      format(series, "0ed28d55d3e9655415b8e31652c8a952")
+    )
+    val respFromFRED = JSON.parseFull(content)
+    val observations = respFromFRED.get.asInstanceOf[Map[String, Any]]("observations").asInstanceOf[List[Any]]
+
+
+    for(singleOb <- observations) {
+      val date = convertStringToDate(singleOb.asInstanceOf[Map[String, Date]]("date").asInstanceOf[String])
+      val value = parseDoubleOrZero(singleOb.asInstanceOf[Map[String, Double]]("value").asInstanceOf[String])
+      rows += Row(date, series, value)
     }
   }
 
-  def loadSeriesFromAPI(seriesId: String, spark: SparkSession): DataFrame = {
-    val response: HttpResponse[String] = Http("https://api.stlouisfed.org/fred/series/observations").param("series_id", seriesId).param("realtime_start", "1930-01-01").param("api_key", "0ed28d55d3e9655415b8e31652c8a952").asString
-    val file = new File("data/temp.xml")
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write(response.body)
-    bw.close()
+  val rowRdd = spark.sparkContext.parallelize(rows)
+  val fields = Seq(
+    StructField("date", TimestampType, true),
+    StructField("series", StringType, true),
+    StructField("value", DoubleType, true)
+  )
+  val schema = StructType(fields)
+  val data = spark.sqlContext.createDataFrame(rowRdd, schema)
+  data.show()
 
-    val observations = StructType(Array(
-      StructField("_date", DateType, nullable = true),
-      StructField("_value", DoubleType, nullable = true)))
-    val schema = StructType(Array(
-      StructField("observation", ArrayType(observations, containsNull = true), nullable = true)))
+  val zone = ZoneId.systemDefault()
+  val dtIndex = DateTimeIndex.uniformFromInterval(
+    ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone),
+    ZonedDateTime.of(LocalDateTime.parse("1999-01-01T00:00:00"), zone),
+    new BusinessDayFrequency(1))
 
-    val series = spark.sqlContext.read.format("com.databricks.spark.xml").option("rowTag", "observations").option("nullValue", ".").schema(schema).load("data/temp.xml").select(explode(col("observation")).as("collection")).select(col("collection.*")).withColumnRenamed("_date", seriesId + "_date").withColumnRenamed("_value", seriesId + "_value")
-    series.show()
-    series
-  }
+  val tickerTsrdd = TimeSeriesRDD.timeSeriesRDDFromObservations(dtIndex, data,
+    "date", "series", "value")
+
+  tickerTsrdd.cache()
+  val filled = tickerTsrdd.fill("linear")
 }
