@@ -16,6 +16,7 @@ object FREDDataLoad extends App {
   case class Series(id: String, points: List[Point])
   val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
 
+  //Get HTTP Response from URL
   @throws(classOf[java.io.IOException])
   @throws(classOf[java.net.SocketTimeoutException])
   def get(url: String,
@@ -38,7 +39,6 @@ object FREDDataLoad extends App {
   def parseDoubleOrZero(value : String): Double = try { value.toDouble }  catch { case _ :Exception => null.asInstanceOf[Double] }
 
   var rows = scala.collection.mutable.ListBuffer[Row]()
-  var parallelLists = scala.collection.mutable.Buffer[Series]()
   val seriesIds = Source.fromFile("data/seriesList2").getLines().toList
   for (series <- seriesIds) {
     println("Fetching Series: " + series)
@@ -64,18 +64,23 @@ object FREDDataLoad extends App {
     StructField("value", DoubleType, true)
   )
   val schema = StructType(fields)
-  val data = spark.sqlContext.createDataFrame(rowRdd, schema)
-  data.show()
+  val timeSeriesData = spark.sqlContext.createDataFrame(rowRdd, schema)
+  timeSeriesData.show()
 
+  //Create DateTimeIndex
   val zone = ZoneId.systemDefault()
-  val dtIndex = DateTimeIndex.uniformFromInterval(
-    ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone),
-    ZonedDateTime.of(LocalDateTime.parse("1999-01-01T00:00:00"), zone),
+  val dateTimeIndex = DateTimeIndex.uniformFromInterval(
+    ZonedDateTime.of(LocalDateTime.parse("1960-01-01T00:00:00"), zone),
+    ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone),
     new BusinessDayFrequency(1))
 
-  val tickerTsrdd = TimeSeriesRDD.timeSeriesRDDFromObservations(dtIndex, data,
+  //Put data into TimeSeriesRDD
+  val timeSeriesRdd = TimeSeriesRDD.timeSeriesRDDFromObservations(dateTimeIndex, timeSeriesData,
     "date", "series", "value")
 
-  tickerTsrdd.cache()
-  val filled = tickerTsrdd.fill("linear")
+  //Cache in memory
+  timeSeriesRdd.cache()
+
+  //Fill in null values using linear interpolation
+  val filled = timeSeriesRdd.fill("linear")
 }
