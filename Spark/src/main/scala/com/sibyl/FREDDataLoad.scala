@@ -5,8 +5,9 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.Date
 
 import com.cloudera.sparkts.{DateTimeIndex, DayFrequency, TimeSeriesRDD}
+import org.apache.spark.ml.classification.RandomForestClassifier
 import org.apache.spark.ml.linalg.{DenseVector, Vectors}
-import org.apache.spark.ml.feature.MinMaxScaler
+import org.apache.spark.ml.feature.{LabeledPoint, MinMaxScaler}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.functions.udf
 
@@ -18,6 +19,7 @@ object FREDDataLoad extends App {
   case class Point(timestamp: Timestamp, value: Double)
   case class Series(id: String, points: List[Point])
   val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
+  import spark.implicits._
 
   //Get HTTP Response from URL
   @throws(classOf[java.io.IOException])
@@ -63,9 +65,9 @@ object FREDDataLoad extends App {
   //Create DataFrame
   val rowRDD = spark.sparkContext.parallelize(rows)
   val fields = Seq(
-    StructField("date", TimestampType, true),
-    StructField("series", StringType, true),
-    StructField("rawValue", DoubleType, true)
+    StructField("date", TimestampType, nullable = true),
+    StructField("series", StringType, nullable = true),
+    StructField("rawValue", DoubleType, nullable = true)
   )
   val schema = StructType(fields)
   val rawTimeSeriesData = spark.sqlContext.createDataFrame(rowRDD, schema)
@@ -77,14 +79,13 @@ object FREDDataLoad extends App {
     .setInputCol("rawValue")
     .setOutputCol("value")
     .setMax(1)
-    .setMin(-1)
+    .setMin(0)
 
   val normalizedTimeSeriesData = scaler.fit(vectorizedTimeSeriesData).transform(vectorizedTimeSeriesData)
 
   //Convert vectorized values back to doubles
   val devectorize = udf{ value:DenseVector => value(0) }
   val devectorizedNormalizedTimeSeriesData = normalizedTimeSeriesData.withColumn("value", devectorize(normalizedTimeSeriesData("value")))
-  devectorizedNormalizedTimeSeriesData.show()
 
   //Create DateTimeIndex
   val zone = ZoneId.systemDefault()
@@ -101,7 +102,24 @@ object FREDDataLoad extends App {
 
   //Fill in null values using linear interpolation
   val filledTimeSeriesRDD = timeSeriesRDD.fill("linear")
-  val sliced = filledTimeSeriesRDD.slice(ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone), ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone))
+  val slicedTimeSeriesRDD = filledTimeSeriesRDD.slice(ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone), ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone))
+  val observationsDataFrame = slicedTimeSeriesRDD.toObservationsDataFrame(spark.sqlContext, "date", "series", "value")
+  val instantsDataFrame = slicedTimeSeriesRDD.toInstantsDataFrame(spark.sqlContext, 1)
 
-  println(sliced.collect().head)
+  //Convert to Dataframe of LabeledPoints
+  val ignored = List("instant", "00XALCATM086NEST")
+  val featInd = instantsDataFrame.columns.diff(ignored).map(instantsDataFrame.columns.indexOf(_))
+  val targetInd = instantsDataFrame.columns.indexOf("00XALCATM086NEST")
+  val instantsLabeledPointDataFrame = instantsDataFrame.rdd.map(r => LabeledPoint(
+    r.getDouble(targetInd), Vectors.dense(featInd.map(r.getDouble))
+  )).toDF()
+
+  instantsLabeledPointDataFrame.show()
+
+  //Train Random Forest Classifier Model
+  val randomForestClassifier = new RandomForestClassifier()
+  val randomForestClassifierModel = randomForestClassifier.fit(instantsLabeledPointDataFrame)
+
+  //Test Model
+  randomForestClassifierModel.transform(instantsLabeledPointDataFrame)
 }
