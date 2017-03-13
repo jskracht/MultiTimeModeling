@@ -4,29 +4,23 @@ import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.Date
 
-import com.cloudera.sparkts.{DateTimeIndex, DayFrequency, TimeSeriesRDD}
-import org.apache.spark.ml.classification.RandomForestClassifier
-import org.apache.spark.ml.linalg.{DenseVector, Vectors}
-import org.apache.spark.ml.feature.{LabeledPoint, MinMaxScaler}
-import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.sql.functions.udf
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import scala.io.Source
 import scala.util.parsing.json._
 import org.apache.spark.sql.types._
 
-object FREDDataLoad extends App {
-  case class Point(timestamp: Timestamp, value: Double)
-  case class Series(id: String, points: List[Point])
-  val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
-  import spark.implicits._
+import scala.collection.mutable.ListBuffer
 
-  //Get HTTP Response from URL
+class FREDDataLoad(val spark: SparkSession) {
+
+  //Gets HTTP response from URL
   @throws(classOf[java.io.IOException])
   @throws(classOf[java.net.SocketTimeoutException])
   def get(url: String,
-          connectTimeout:Int =5000,
-          readTimeout:Int =5000,
+          connectTimeout: Int = 5000,
+          readTimeout: Int = 5000,
           requestMethod: String = "GET"): String = {
     import java.net.{HttpURLConnection, URL}
     val connection = new URL(url).openConnection.asInstanceOf[HttpURLConnection]
@@ -39,87 +33,54 @@ object FREDDataLoad extends App {
     content
   }
 
-  def convertStringToDate(date: String): Timestamp = Timestamp.from(ZonedDateTime.of(LocalDateTime.parse(date + "T00:00:00"), ZoneId.systemDefault()).toInstant)
+  //Convert FRED YYYY-MM-DD formated string to date
+  private def convertStringToDate(date: String): Timestamp = {
+    Timestamp.from(ZonedDateTime.of(LocalDateTime.parse(date + "T00:00:00"), ZoneId.systemDefault()).toInstant)
+  }
 
-  def parseDoubleOrZero(value : String): Double = try { value.toDouble }  catch { case _ :Exception => null.asInstanceOf[Double] }
-
-  var rows = scala.collection.mutable.ListBuffer[Row]()
-  val seriesIDs = Source.fromFile("data/seriesList2").getLines().toList
-  for (series <- seriesIDs) {
-    println("Fetching Series: " + series)
-
-    val content = get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json".
-      format(series, "0ed28d55d3e9655415b8e31652c8a952")
-    )
-    val respFromFRED = JSON.parseFull(content)
-    val observations = respFromFRED.get.asInstanceOf[Map[String, Any]]("observations").asInstanceOf[List[Any]]
-
-
-    for(singleOb <- observations) {
-      val date = convertStringToDate(singleOb.asInstanceOf[Map[String, Date]]("date").asInstanceOf[String])
-      val value = parseDoubleOrZero(singleOb.asInstanceOf[Map[String, Double]]("value").asInstanceOf[String])
-      rows += Row(date, series, value)
+  //Convert FRED value column to double
+  private def parseDoubleOrZero(value: String): Double = {
+    try {
+      value.toDouble
+    } catch {
+      case _: Exception => null.asInstanceOf[Double]
     }
   }
 
-  //Create DataFrame
-  val rowRDD = spark.sparkContext.parallelize(rows)
-  val fields = Seq(
-    StructField("date", TimestampType, nullable = true),
-    StructField("series", StringType, nullable = true),
-    StructField("rawValue", DoubleType, nullable = true)
-  )
-  val schema = StructType(fields)
-  val rawTimeSeriesData = spark.sqlContext.createDataFrame(rowRDD, schema)
+  //Read in seriesIDs from file, pull data for each ID, and save each observation as a row
+  def getRowData(seriesListPath: String): ListBuffer[Row] = {
+    var rowData = ListBuffer[Row]()
+    val seriesIDs = Source.fromFile(seriesListPath).getLines().toList
+    for (series <- seriesIDs) {
+      println("Fetching Series: " + series)
 
-  //Vectorize raw values to use Min/Max Scaler for normalization
-  val vectorize = udf((rawValue:Double) => Vectors.dense(Array(rawValue)))
-  val vectorizedTimeSeriesData = rawTimeSeriesData.withColumn("rawValue", vectorize(rawTimeSeriesData("rawValue")))
-  val scaler = new MinMaxScaler()
-    .setInputCol("rawValue")
-    .setOutputCol("value")
-    .setMax(1)
-    .setMin(0)
+      val content = get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json".
+        format(series, "0ed28d55d3e9655415b8e31652c8a952")
+      )
+      val respFromFRED = JSON.parseFull(content)
+      val observations = respFromFRED.get.asInstanceOf[Map[String, Any]]("observations").asInstanceOf[List[Any]]
 
-  val normalizedTimeSeriesData = scaler.fit(vectorizedTimeSeriesData).transform(vectorizedTimeSeriesData)
+      for (singleObservation <- observations) {
+        val date = convertStringToDate(singleObservation.asInstanceOf[Map[String, Date]]("date").asInstanceOf[String])
+        val value = parseDoubleOrZero(singleObservation.asInstanceOf[Map[String, Double]]("value").asInstanceOf[String])
+        rowData += Row(date, series, value)
+      }
+    }
+    rowData
+  }
 
-  //Convert vectorized values back to doubles
-  val devectorize = udf{ value:DenseVector => value(0) }
-  val devectorizedNormalizedTimeSeriesData = normalizedTimeSeriesData.withColumn("value", devectorize(normalizedTimeSeriesData("value")))
+  def convertListBufferToRDD(rowData: ListBuffer[Row]): RDD[Row] = {
+    spark.sparkContext.parallelize(getRowData("data/seriesList2"))
+  }
 
-  //Create DateTimeIndex
-  val zone = ZoneId.systemDefault()
-  val dateTimeIndex = DateTimeIndex.uniformFromInterval(
-    ZonedDateTime.of(LocalDateTime.parse("1960-01-01T00:00:00"), zone),
-    ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone), new DayFrequency(1))
-
-  //Put data into TimeSeriesRDD
-  val timeSeriesRDD = TimeSeriesRDD.timeSeriesRDDFromObservations(dateTimeIndex, devectorizedNormalizedTimeSeriesData,
-    "date", "series", "value")
-
-  //Cache in memory
-  timeSeriesRDD.cache()
-
-  //Fill in null values using linear interpolation
-  val filledTimeSeriesRDD = timeSeriesRDD.fill("linear")
-  val slicedTimeSeriesRDD = filledTimeSeriesRDD.slice(ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone), ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone))
-  val observationsDataFrame = slicedTimeSeriesRDD.toObservationsDataFrame(spark.sqlContext, "date", "series", "value")
-  val instantsDataFrame = slicedTimeSeriesRDD.toInstantsDataFrame(spark.sqlContext, 1)
-
-  //Convert to Dataframe of LabeledPoints
-  val ignored = List("instant", "00XALCATM086NEST")
-  val featInd = instantsDataFrame.columns.diff(ignored).map(instantsDataFrame.columns.indexOf(_))
-  val targetInd = instantsDataFrame.columns.indexOf("00XALCATM086NEST")
-  val instantsLabeledPointDataFrame = instantsDataFrame.rdd.map(r => LabeledPoint(
-    r.getDouble(targetInd), Vectors.dense(featInd.map(r.getDouble))
-  )).toDF()
-
-  instantsLabeledPointDataFrame.show()
-
-  //Train Random Forest Classifier Model
-  val randomForestClassifier = new RandomForestClassifier()
-  val randomForestClassifierModel = randomForestClassifier.fit(instantsLabeledPointDataFrame)
-
-  //Test Model
-  randomForestClassifierModel.transform(instantsLabeledPointDataFrame)
+  //Define schema to create dataframe from RDD
+  def createObservationsDataFrameFromRDD(rowData: RDD[Row]): DataFrame = {
+    val fields = Seq(
+      StructField("date", TimestampType, nullable = true),
+      StructField("series", StringType, nullable = true),
+      StructField("rawValue", DoubleType, nullable = true)
+    )
+    val schema = StructType(fields)
+    spark.sqlContext.createDataFrame(rowData, schema)
+  }
 }
