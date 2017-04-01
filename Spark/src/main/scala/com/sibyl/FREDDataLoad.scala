@@ -39,7 +39,7 @@ class FREDDataLoad(val spark: SparkSession) {
   }
 
   //Convert FRED value column to double
-  private def parseDoubleOrZero(value: String): Double = {
+  def parseDoubleOrZero(value: String): Double = {
     try {
       value.toDouble
     } catch {
@@ -50,8 +50,7 @@ class FREDDataLoad(val spark: SparkSession) {
   //Read in seriesIDs from file, pull data for each ID, and save each observation as a row
   def getRowData(seriesListPath: String): ListBuffer[Row] = {
     var rowData = ListBuffer[Row]()
-    val seriesIDs = Source.fromFile(seriesListPath).getLines().toList
-    for (series <- seriesIDs) {
+    for (series <- getSeriesIDs(seriesListPath)) {
       println("Fetching Series: " + series)
 
       val content = get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json".
@@ -67,6 +66,10 @@ class FREDDataLoad(val spark: SparkSession) {
       }
     }
     rowData
+  }
+
+  def getSeriesIDs(seriesListPath: String): List[String] = {
+    Source.fromFile(seriesListPath).getLines().toList
   }
 
   def convertListBufferToRDD(rowData: ListBuffer[Row]): RDD[Row] = {

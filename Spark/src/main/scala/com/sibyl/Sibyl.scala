@@ -9,13 +9,24 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object Sibyl extends App {
   val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
+  spark.sparkContext.setLogLevel("ERROR")
 
   import spark.implicits._
 
-  val dataLoad = new FREDDataLoad(spark)
-  val rowData = dataLoad.getRowData("data/seriesList2")
+  //Test Data Correlation
+//  val test = spark.read.format("csv").option("header", "true").load("data/FRED/Production and Business/data/4/4BIGEUROREC.csv")
+//  val test2 = spark.read.format("csv").option("header", "true").load("data/FRED/Production and Business/data/4/4BIGEURORECD.csv")
+//  val vectorizedData = test.collect().map(_.getAs[org.apache.spark.ml.linalg.Vector](1).asInstanceOf[String].toDouble)
+//  val vectorizedData2 = test2.collect().map(_.getAs[org.apache.spark.ml.linalg.Vector](1).asInstanceOf[String].toDouble)
+//  selectVariables.testCorrelation(vectorizedData, vectorizedData2)
+
+  val CSVDataLoad = new CSVDataLoad(spark)
+  val csvData = CSVDataLoad.getCSVData
+
+  val FREDdataLoad = new FREDDataLoad(spark)
+  val rowData = FREDdataLoad.getRowData("data/seriesList2")
   val rowRDD = spark.sparkContext.parallelize(rowData)
-  val observationsDataFrame = dataLoad.createObservationsDataFrameFromRDD(rowRDD)
+  val observationsDataFrame = FREDdataLoad.createObservationsDataFrameFromRDD(rowRDD)
 
   val cleanData = new CleanData(spark)
   var normalizedDataFrame = cleanData.normalizeData(observationsDataFrame, "rawValue", "value")
@@ -30,18 +41,27 @@ object Sibyl extends App {
   timeSeriesRDD.cache()
 
   //Fill in null values using linear interpolation
-  val filledTimeSeriesRDD = timeSeriesRDD.fill("linear")
+  var filledTimeSeriesRDD = timeSeriesRDD.fill("linear")
+  filledTimeSeriesRDD = filledTimeSeriesRDD.removeInstantsWithNaNs()
+
+  val selectVariables = new SelectVariables(spark)
+  for (series <- FREDdataLoad.getSeriesIDs("data/seriesList2")) {
+    if (series != "RECPROUSM156N") {
+      val correlation = selectVariables.testCorrelation(filledTimeSeriesRDD.findSeries("RECPROUSM156N"), filledTimeSeriesRDD.findSeries(series))
+      if (correlation > 0.75 || correlation < -0.75){
+        println(series + " has correlation of: " + correlation)
+      }
+    }
+  }
 
   //TODO Temporary
   val slicedTimeSeriesRDD = filledTimeSeriesRDD.slice(ZonedDateTime.of(LocalDateTime.parse("1996-01-01T00:00:00"), zone), ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone))
 
   val instantsDataFrame = slicedTimeSeriesRDD.toInstantsDataFrame(spark.sqlContext, 1)
-
-  val selectVariables = new SelectVariables(spark)
-  val correlation = selectVariables.testCorrelation(slicedTimeSeriesRDD.findSeries("00XALCATM086NEST"), slicedTimeSeriesRDD.findSeries("00XALCBEM086NEST"))
-  println(correlation)
+  instantsDataFrame.show()
 
   val labeledPointsDataFrame = convertInstantsDataFrameToLabeledPointsDataFrame(instantsDataFrame)
+  labeledPointsDataFrame.show()
 
   val linearRegressionModel = selectVariables.buildLinearRegressionModel(labeledPointsDataFrame)
   println(s"Coefficients: ${linearRegressionModel.coefficients} Intercept: ${linearRegressionModel.intercept}")
@@ -50,9 +70,9 @@ object Sibyl extends App {
   println(s"RMSE: ${trainingSummary.rootMeanSquaredError}")
   println(s"r2: ${trainingSummary.r2}")
 
-  //Train Random Forest Classifier Model
-  val randomForestClassifierModel = selectVariables.buildRandomForestModel(labeledPointsDataFrame)
-  val output = randomForestClassifierModel.transform(labeledPointsDataFrame)
+  //Train Random Forest Regressor Model
+  val randomForestRegressionModel = selectVariables.buildRandomForestModel(labeledPointsDataFrame)
+  val output = randomForestRegressionModel.transform(labeledPointsDataFrame)
   output.show()
 
   def convertInstantsDataFrameToLabeledPointsDataFrame(dataFrame: DataFrame): DataFrame = {
@@ -60,7 +80,7 @@ object Sibyl extends App {
     val featInd = instantsDataFrame.columns.diff(ignored).map(instantsDataFrame.columns.indexOf(_))
     val targetInd = instantsDataFrame.columns.indexOf("00XALCATM086NEST")
      instantsDataFrame.rdd.map(r => LabeledPoint(
-      r.getDouble(targetInd).round, Vectors.dense(featInd.map(r.getDouble))
+      r.getDouble(targetInd), Vectors.dense(featInd.map(r.getDouble))
     )).toDF()
   }
 }
