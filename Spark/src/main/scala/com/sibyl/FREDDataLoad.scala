@@ -72,10 +72,6 @@ class FREDDataLoad(val spark: SparkSession) {
     Source.fromFile(seriesListPath).getLines().toList
   }
 
-  def convertListBufferToRDD(rowData: ListBuffer[Row]): RDD[Row] = {
-    spark.sparkContext.parallelize(getRowData("data/seriesList2"))
-  }
-
   //Define schema to create dataframe from RDD
   def createObservationsDataFrameFromRDD(rowData: RDD[Row]): DataFrame = {
     val fields = Seq(

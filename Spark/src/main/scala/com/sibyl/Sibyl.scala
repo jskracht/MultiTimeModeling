@@ -6,30 +6,26 @@ import com.cloudera.sparkts.{DateTimeIndex, DayFrequency, TimeSeriesRDD}
 import org.apache.spark.ml.feature.LabeledPoint
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.sql.{DataFrame, SparkSession}
-
 object Sibyl extends App {
   val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
-
   import spark.implicits._
 
-  //Test Data Correlation
-//  val test = spark.read.format("csv").option("header", "true").load("data/FRED/Production and Business/data/4/4BIGEUROREC.csv")
-//  val test2 = spark.read.format("csv").option("header", "true").load("data/FRED/Production and Business/data/4/4BIGEURORECD.csv")
-//  val vectorizedData = test.collect().map(_.getAs[org.apache.spark.ml.linalg.Vector](1).asInstanceOf[String].toDouble)
-//  val vectorizedData2 = test2.collect().map(_.getAs[org.apache.spark.ml.linalg.Vector](1).asInstanceOf[String].toDouble)
-//  selectVariables.testCorrelation(vectorizedData, vectorizedData2)
+  //Read in Test Data
+  val dataFromParquet = spark.sqlContext.
+    read.parquet("data/testData")
 
-  val CSVDataLoad = new CSVDataLoad(spark)
-  val csvData = CSVDataLoad.getCSVData
-
+  //Read in Data from FRED API
   val FREDdataLoad = new FREDDataLoad(spark)
-  val rowData = FREDdataLoad.getRowData("data/seriesList2")
-  val rowRDD = spark.sparkContext.parallelize(rowData)
-  val observationsDataFrame = FREDdataLoad.createObservationsDataFrameFromRDD(rowRDD)
+//  val rowData = FREDdataLoad.getRowData("data/testSeries")
+//  val rowRDD = spark.sparkContext.parallelize(rowData)
+//  val observationsDataFrame = FREDdataLoad.createObservationsDataFrameFromRDD(rowRDD)
+
+  //Save data to parquet for quick load
+  //observationsDataFrame.write.parquet("data/testData")
 
   val cleanData = new CleanData(spark)
-  var normalizedDataFrame = cleanData.normalizeData(observationsDataFrame, "rawValue", "value")
+  var normalizedDataFrame = cleanData.normalizeData(dataFromParquet, "rawValue", "value")
   normalizedDataFrame = cleanData.devectorizeData(normalizedDataFrame, "value")
 
   val zone = ZoneId.systemDefault()
@@ -45,7 +41,7 @@ object Sibyl extends App {
   filledTimeSeriesRDD = filledTimeSeriesRDD.removeInstantsWithNaNs()
 
   val selectVariables = new SelectVariables(spark)
-  for (series <- FREDdataLoad.getSeriesIDs("data/seriesList2")) {
+  for (series <- FREDdataLoad.getSeriesIDs("data/testSeries")) {
     if (series != "RECPROUSM156N") {
       val correlation = selectVariables.testCorrelation(filledTimeSeriesRDD.findSeries("RECPROUSM156N"), filledTimeSeriesRDD.findSeries(series))
       if (correlation > 0.75 || correlation < -0.75){
