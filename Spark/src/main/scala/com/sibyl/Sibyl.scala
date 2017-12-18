@@ -6,7 +6,7 @@ import com.cloudera.sparkts.{DateTimeIndex, DayFrequency, TimeSeriesRDD}
 import org.apache.spark.ml.feature.LabeledPoint
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.sql.{DataFrame, SparkSession}
-object Sibyl extends App {
+ object Sibyl extends App {
   val spark = SparkSession.builder.master("local").appName("Sibyl").getOrCreate()
   spark.sparkContext.setLogLevel("ERROR")
   import spark.implicits._
@@ -24,21 +24,20 @@ object Sibyl extends App {
   //Save data to parquet for quick load
   //observationsDataFrame.write.parquet("data/testData")
 
-  val cleanData = new CleanData(spark)
-  var normalizedDataFrame = cleanData.normalizeData(dataFromParquet, "rawValue", "value")
-  normalizedDataFrame = cleanData.devectorizeData(normalizedDataFrame, "value")
+//  val cleanData = new CleanData(spark)
+//  var normalizedDataFrame = cleanData.normalizeData(dataFromParquet, "rawValue", "value")
+//  normalizedDataFrame = cleanData.devectorizeData(normalizedDataFrame, "value")
 
   val zone = ZoneId.systemDefault()
   val dateTimeIndex = DateTimeIndex.uniformFromInterval(
-    ZonedDateTime.of(LocalDateTime.parse("1960-01-01T00:00:00"), zone),
+    ZonedDateTime.of(LocalDateTime.parse("1970-01-06T00:00:00"), zone),
     ZonedDateTime.of(LocalDateTime.parse("2017-01-01T00:00:00"), zone), new DayFrequency(1))
-  val timeSeriesRDD = TimeSeriesRDD.timeSeriesRDDFromObservations(dateTimeIndex, normalizedDataFrame,
-    "date", "series", "value")
+  val timeSeriesRDD = TimeSeriesRDD.timeSeriesRDDFromObservations(dateTimeIndex, dataFromParquet,
+    "date", "series", "rawValue")
   timeSeriesRDD.cache()
 
   //Fill in null values using linear interpolation
   var filledTimeSeriesRDD = timeSeriesRDD.fill("linear")
-  filledTimeSeriesRDD = filledTimeSeriesRDD.removeInstantsWithNaNs()
 
   val selectVariables = new SelectVariables(spark)
   for (series <- FREDdataLoad.getSeriesIDs("data/testSeries")) {
