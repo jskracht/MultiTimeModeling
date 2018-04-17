@@ -15,7 +15,7 @@ trainingPercent <- 0.8
 normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
-end <- "2017-10-01"
+end <- "2018-04-01"
 futureDataPoints <- 12
  
 ################## FUNCTIONS ##################
@@ -191,8 +191,8 @@ indicatorVariables <- c("FRED/ACOILBRENTEU","FRED/ACOILWTICO","FRED/AHETPI","FRE
  
 # Pull Data
 rawData <- Quandl(c(toString(responseVariable), indicatorVariables),
-	start_date = toString(start), end_date = toString(end), type = "zoo",
-	collapse = toString(frequency), transform = "normalize")
+start_date = toString(start), end_date = toString(end), type = "zoo",
+collapse = toString(frequency), transform = "normalize")
  
 completeData <- standardizeData(rawData)
  
