@@ -250,5 +250,6 @@
     <orderEntry type="library" name="sbt: bouncycastle:bcmail-jdk14:138:jar" level="project" />
     <orderEntry type="library" name="sbt: aopalliance:aopalliance:1.0:jar" level="project" />
     <orderEntry type="library" name="R User Library" level="project" />
+    <orderEntry type="library" name="R Skeletons" level="application" />
   </component>
 </module>
