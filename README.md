@@ -13,7 +13,7 @@ The Federal Reserve has a huge amount of data on the economy of the United State
 1. Fill in missing and sparse data using Cubic Spline Interpolation.
 
 ![Cubic Spline Interpolation]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Cubic%20Spline%20Interpolation.png)
+(Readme/Cubic_Spline_Interpolation.png)
 
 2. Normalize values.
 
