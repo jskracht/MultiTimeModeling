@@ -12,13 +12,11 @@ The Federal Reserve has a huge amount of data on the economy of the United State
 ### DSDP Description:
 1. Fill in missing and sparse data using Cubic Spline Interpolation.
 
-![Cubic Spline Interpolation]
-(Readme/Cubic_Spline_Interpolation.png)
+![Cubic Spline Interpolation](Readme/Cubic_Spline_Interpolation.png)
 
 2. Normalize values.
 
-![Normalize]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Normalize.png)
+![Normalize](Readme/Normalize.png)
 
 3. Pass training data to model.
 4. Given the current state, model parameters, and y, calculate Spike and Slab prior (built in
@@ -53,8 +51,7 @@ The tool, Causal Impact, is heavily based on Bayesian Structural Time Series and
   3. Counter-factual inference based on prior knowledge about model parameters.
   The model form is a Markov Chain Monte Carlo Bayesian approach.
 
-![Bayesian Markov Chain Monte Carlo]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Bayesian Markov Chain Monte Carlo.png)
+![Bayesian Markov Chain Monte Carlo](Readme/Bayesian_Markov_Chain_Monte_Carlo.png)
 
 Where the model parameters are θ = {σε,σu,σv,σw,β} and the state is α = {α1,...,αn}, the Markov Chain Monte Carlo algorithm is:
 
@@ -84,18 +81,15 @@ Dashed Blue: Model Fit<br />
 Light Blue: Prediction Variance<br />
 Dashed Grey Vertical Line: Separation of Pre/Post Period
 
-![Model Fit Output]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Model Fit Output.png)
+![Model Fit Output](Readme/Model_Fit_Output.png)
 
 **Model Validation**
 
-![Model Validation Output]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Model Validation Output.png)
+![Model Validation Output](Readme/Model_Validation_Output.png)
 
 **Prediction Beyond Known**
 
-![Prediction Beyond Known]
-(https://github.com/jskracht/MultiTimeModeling/blob/master/Readme/Prediction Beyond Known.png)
+![Prediction Beyond Known](Readme/Prediction_Beyond_Known.png)
 
 ### References:
 http://static.googleusercontent.com/media/research.google.com/en/pubs/archive/41854.pdf<br />
