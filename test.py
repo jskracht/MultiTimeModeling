@@ -1,7 +1,7 @@
 import quandl
 import pickle
-from statsmodels.tsa.statespace.structural import UnobservedComponents
 from causalimpact import CausalImpact
+from statsmodels.tsa.statespace.structural import UnobservedComponents
 quandl.ApiConfig.api_key = "ti-yR6gd8be4x4yswvy4"
 
 # The first item in the list is always the response variable
