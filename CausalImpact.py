@@ -24,7 +24,7 @@ dataset = dataframe.values
 pre_period = [0, split]
 post_period = [split + 1, 600]
 
-ci = CausalImpact(dataset, pre_period, post_period)
+ci = CausalImpact(dataset, pre_period, post_period, prior_level_sd=None)
 print(ci.summary())
 print(ci.summary(output='report'))
 ci.plot()
