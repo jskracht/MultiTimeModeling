@@ -15,7 +15,7 @@ trainingPercent <- 0.8
 normalize <- TRUE
 frequency <- "monthly"
 start <- "1967-06-01"
-end <- "2019-08-01"
+end <- "2020-01-01"
 futureDataPoints <- 12
  
 ################## FUNCTIONS ##################
