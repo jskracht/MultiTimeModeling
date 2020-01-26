@@ -26,14 +26,16 @@ dataset = dataframe.values
 # Split Data
 train = dataset[:split, :]
 test = dataset[split:, :]
+all_X = dataset[:, 1:]
+all_Y = dataset[:, 0]
 
 # Split Into Input and Outputs
-train_X, train_y = train[:, 1:], train[:, 0]
-test_X, test_y = test[:, 1:], test[:, 0]
+train_X, train_Y = train[:, 1:], train[:, 0]
+test_X, test_Y = test[:, 1:], test[:, 0]
 
 # Reshape Input to be 3D [Samples, Timesteps, Features]
-train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
-test_X = test_X.reshape((test_X.shape[0], 1, test_X.shape[1]))
+train_X = train_X.reshape(train_X.shape[0], 1, train_X.shape[1])
+test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 
 # Build Model
 multi_step_model = tf.keras.models.Sequential()
@@ -42,11 +44,18 @@ multi_step_model.add(tf.keras.layers.Dense(1))
 multi_step_model.compile(loss='mae', optimizer='adam')
 
 # Train Model
-multi_step_model.fit(train_X, train_y, epochs=30, batch_size=12, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+multi_step_model.fit(train_X, train_Y, epochs=30, batch_size=12, validation_data=(test_X, test_Y), verbose=2, shuffle=False)
 
-# Make Prediction
-yhat = multi_step_model.predict(test_X)
-plt.plot(test_y, label='actual')
-plt.plot(yhat, label='predicted')
+# Make Test Prediction
+prediction_Y = multi_step_model.predict(test_X)
+plt.plot(test_Y, label='actual')
+plt.plot(prediction_Y, label='predicted')
+plt.legend()
+plt.show()
+
+# Make Future Prediction (Need to Use "Windowing")
+all_X = all_X.reshape(all_X.shape[0], 1, all_X.shape[1])
+prediction_Y = multi_step_model.predict(all_X)
+plt.plot(prediction_Y, label='predicted')
 plt.legend()
 plt.show()
