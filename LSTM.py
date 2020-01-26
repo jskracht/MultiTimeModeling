@@ -17,24 +17,21 @@ dataframe = pd.read_pickle('data/dataframe.dat')
 # Interpolate Data
 dataframe = dataframe.interpolate(method='time', limit_direction='both')
 
-# Normalize the Dataset
+# Normalize Dataset
 min_max_scaler = preprocessing.MinMaxScaler()
 np_scaled = min_max_scaler.fit_transform(dataframe)
 dataframe = pd.DataFrame(np_scaled, columns = dataframe.columns)
 dataset = dataframe.values
-
-# Seed TensorFlow
-tf.random.set_seed(13)
 
 # Split Data
 train = dataset[:split, :]
 test = dataset[split:, :]
 
 # Split Into Input and Outputs
-train_X, train_y = train[:, :-1], train[:, 0]
-test_X, test_y = test[:, :-1], test[:, 0]
+train_X, train_y = train[:, 1:], train[:, 0]
+test_X, test_y = test[:, 1:], test[:, 0]
 
-# Reshape Input to be 3D [samples, timesteps, features]
+# Reshape Input to be 3D [Samples, Timesteps, Features]
 train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
 test_X = test_X.reshape((test_X.shape[0], 1, test_X.shape[1]))
 
@@ -45,9 +42,9 @@ multi_step_model.add(tf.keras.layers.Dense(1))
 multi_step_model.compile(loss='mae', optimizer='adam')
 
 # Train Model
-multi_step_model.fit(train_X, train_y, epochs=50, batch_size=12, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+multi_step_model.fit(train_X, train_y, epochs=30, batch_size=12, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
-# make a prediction
+# Make Prediction
 yhat = multi_step_model.predict(test_X)
 plt.plot(test_y, label='actual')
 plt.plot(yhat, label='predicted')
