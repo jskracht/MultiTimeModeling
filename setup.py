@@ -4,5 +4,5 @@ setup(
     name='Sibyl',
     version='0.2',
     packages=find_packages(),
-    install_requires=['quandl', 'matplotlib', 'tensorflow', 'pandas', 'pycausalimpact', 'preprocessing']
+    install_requires=['quandl', 'matplotlib', 'tensorflow', 'pandas', 'pycausalimpact', 'preprocessing', 'sklearn']
 )
