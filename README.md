@@ -2,7 +2,8 @@
 Jeshua Kracht
 
 ### Requirements:
-Python 3.8.x
+Python 3.8.x and listed dependencies
+
 *Tested on Mac OS X Big Sur*
 
 ### Technical Problem:
