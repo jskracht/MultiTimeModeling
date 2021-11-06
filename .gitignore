@@ -1,4 +1,4 @@
 Sibyl.egg-info/
 data/dataframe.dat
-venv/
 .vscode/
+.DS_Store
