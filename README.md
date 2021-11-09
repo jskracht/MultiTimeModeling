@@ -2,7 +2,7 @@
 Jeshua Kracht
 
 ### Requirements:
-Docker with at least 2 CPU and 8GB RAM Configured
+Mac OS 12.x
 
 ### Technical Problem:
 The Federal Reserve has a huge amount of data on the economy of the United States containing information of varying accuracy, relevance, and completeness. Many times series contain vital data about the state of the economy, but do not tell the whole story by themselves. Often, in hindsight, many indicator variables forecasted recessions and depressions before the markets crashed. Detecting symptoms of impending recession across hundreds of time series can be difficult. Much of the available data is noisy and, because of the ever changing nature of the economy, each recession has a slightly different signature. The challenge is to intelligently pair down dimensions and dynamically recognize warning signs based on prior multivariate time series data values without overfitting to only recognize historical recessions. This problem space is applicable to a massive number of problems and, as such, my solution is generic enough to work with essentially any multivariate time series prediction problem.
