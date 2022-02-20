@@ -24,7 +24,7 @@ dataframe = dataframe.interpolate(method='time', limit_direction='both')
 min_max_scaler = preprocessing.MinMaxScaler()
 np_scaled = min_max_scaler.fit_transform(dataframe)
 dataframe = pd.DataFrame(np_scaled, columns = dataframe.columns)
-dataset = dataframe.valuesa
+dataset = dataframe.values
 
 # Split Data Into Training and Test
 split = 440
