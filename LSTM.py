@@ -220,9 +220,13 @@ print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strf
 
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
-plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
+
+# Plot the future predictions
+# TODO
+# plt.plot(last_20percent_dates, last_20_percent_dates * 100, label='Historical Data', color='blue')
+plt.plot(future_dates, future_predictions * 100, label='Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title('3-Month Forecast')
+plt.title('Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
