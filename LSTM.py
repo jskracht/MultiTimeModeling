@@ -182,12 +182,15 @@ history = multi_step_model.fit(train_X, train_Y,
                              shuffle=False)
 
 prediction_Y = multi_step_model.predict(test_X)
-test_dates = dataframe.index[split:]
+
+# Create an array for predictions with NaNs for the training period
+prediction = np.full_like(combined_actual, np.nan, dtype=np.float32)
+prediction[len(train_Y):] = prediction_Y.flatten()  # Fill in predictions for the test period
 
 # Plot the full test set predictions
 plt.figure(figsize=(15, 7))
-plt.plot(test_dates, test_Y * 100, label='Actual', color='blue')
-plt.plot(test_dates, prediction_Y * 100, label='Predicted', color='red', linestyle='--')
+plt.plot(dataframe.index, all_Y * 100, label='Actual', color='blue')
+plt.plot(dataframe.index, prediction * 100, label='Predicted', color='red', linestyle='--')
 plt.title('Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
