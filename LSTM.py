@@ -186,9 +186,20 @@ multi_step_model.fit(train_X, train_Y, epochs=30, batch_size=12, validation_data
 
 # Make Test Prediction
 prediction_Y = multi_step_model.predict(test_X)
+
+# Convert start_date to datetime for comparison
+start_datetime = pd.to_datetime(start_date)
+
+# Filter data from start_date onwards for test set visualization
+test_dates = pd.DatetimeIndex(dataframe.index[split:])
+test_dates_mask = test_dates >= start_datetime
+filtered_test_dates = test_dates[test_dates_mask]
+filtered_test_Y = test_Y[test_dates_mask]
+filtered_prediction_Y = prediction_Y[test_dates_mask]
+
 plt.figure(figsize=(12, 6))
-plt.plot(dataframe.index[split:], test_Y * 100, label='Actual', color='blue')
-plt.plot(dataframe.index[split:], prediction_Y * 100, label='Predicted', color='red', linestyle='--')
+plt.plot(filtered_test_dates, filtered_test_Y * 100, label='Actual', color='blue')
+plt.plot(filtered_test_dates, filtered_prediction_Y * 100, label='Predicted', color='red', linestyle='--')
 plt.title('Test Set Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
@@ -231,7 +242,14 @@ future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1),
 
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
-plt.plot(dataframe.index, all_Y * 100, label='Historical Data', color='blue')
+
+# Filter historical data from start_date onwards
+historical_dates = pd.DatetimeIndex(dataframe.index)
+historical_dates_mask = historical_dates >= start_datetime
+filtered_historical_dates = historical_dates[historical_dates_mask]
+filtered_historical_values = all_Y[historical_dates_mask]
+
+plt.plot(filtered_historical_dates, filtered_historical_values * 100, label='Historical Data', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='Future Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
 plt.title('Historical Data and Future Forecast')
