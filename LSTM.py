@@ -99,8 +99,8 @@ def clean_and_validate_data(df):
     # Calculate the percentage of NaN values in each column
     nan_percentages = df.isna().mean() * 100
     
-    # Remove columns with more than 50% NaN values
-    columns_to_drop = nan_percentages[nan_percentages > 99].index
+    # Remove columns with more than 95% NaN values
+    columns_to_drop = nan_percentages[nan_percentages > 95].index
     if len(columns_to_drop) > 0:
         print("\nWarning: Removing columns with more than 50% missing values:")
         for col in columns_to_drop:
