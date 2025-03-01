@@ -14,6 +14,7 @@ python3 -m pip install -e .
 
 ### Run
 ``` bash
+export FRED_API_KEY={ENTER_KEY_HERE}
 python3 LSTM.py
 ```
 
