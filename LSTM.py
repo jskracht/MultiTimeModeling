@@ -21,14 +21,7 @@ RATE_LIMIT_DELAY = 0.25
 def fetch_fred_series(series_id, start_date, end_date):
     try:
         time.sleep(RATE_LIMIT_DELAY)
-        
-        # First try monthly frequency
-        try:
-            data = fred.get_series(series_id, start_date=start_date, end_date=end_date, frequency='m')
-        except Exception as freq_error:
-            data = fred.get_series(series_id, start_date=start_date, end_date=end_date)
-            data = data.asfreq('ME', method='ffill') 
-
+        data = fred.get_series(series_id, start_date=start_date, end_date=end_date, frequency='m')
         return pd.Series(data, name=series_id)
     except Exception as e:
         print(f"Error fetching {series_id}: {str(e)}")
