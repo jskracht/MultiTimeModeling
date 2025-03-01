@@ -37,25 +37,12 @@ def fetch_fred_series(series_id, start_date, end_date):
 def load_or_fetch_data(features, start_date, end_date):
     if os.path.exists(DATA_CACHE_FILE):
         print("Loading data from local cache...")
-        try:
-            # First try loading with date as index
-            cached_data = pd.read_csv(DATA_CACHE_FILE, index_col=0, parse_dates=True)
-        except Exception:
-            # If that fails, try loading with date as a column
-            cached_data = pd.read_csv(DATA_CACHE_FILE)
-            if 'date' in cached_data.columns:
-                cached_data['date'] = pd.to_datetime(cached_data['date'])
-                cached_data.set_index('date', inplace=True)
-            else:
-                raise ValueError("Cache file does not contain date information")
+        cached_data = pd.read_csv(DATA_CACHE_FILE, index_col=0, parse_dates=True)
         
         print(f"\nLoaded data date range: {cached_data.index.min()} to {cached_data.index.max()}")
-        
-        # Filter data by date range
         cached_data = cached_data[start_date:end_date]
         print(f"After filtering: {cached_data.index.min()} to {cached_data.index.max()}\n")
         
-        # Check if we need to update the cache
         if cached_data.index[-1].strftime('%Y-%m-%d') >= end_date:
             print("Cache is up to date!")
             return clean_and_validate_data(cached_data)
