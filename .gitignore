@@ -3,3 +3,4 @@ data/dataframe.dat
 .vscode/
 .DS_Store
 venv
+fred_data_cache.csv
