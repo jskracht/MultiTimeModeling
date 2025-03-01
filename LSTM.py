@@ -1,3 +1,5 @@
+import time
+import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -5,8 +7,6 @@ import numpy as np
 from sklearn import preprocessing
 from datetime import datetime
 from fredapi import Fred
-import time
-import os
 fred = Fred(api_key="a8b743935c751548fe996ee153f3fbde")
 
 DATA_CACHE_FILE = 'fred_data_cache.csv'
@@ -32,10 +32,11 @@ def fetch_fred_series(series_id, start_date, end_date):
         return pd.Series(name=series_id)
 
 def load_or_fetch_data(features, start_date, end_date):
-    """Load data from cache if available, otherwise fetch from FRED"""
     if os.path.exists(DATA_CACHE_FILE):
         print("Loading data from local cache...")
-        cached_data = pd.read_csv(DATA_CACHE_FILE, index_col=0, parse_dates=True)
+        cached_data = pd.read_csv(DATA_CACHE_FILE)
+        cached_data['date'] = pd.to_datetime(cached_data['date'])
+        cached_data.set_index('date', inplace=True)
         
         # Check if we need to update the cache
         if cached_data.index[-1].strftime('%Y-%m-%d') >= end_date:
@@ -44,7 +45,6 @@ def load_or_fetch_data(features, start_date, end_date):
         else:
             print("Cache exists but needs updating...")
     
-    print("Fetching data from FRED (this may take a while due to rate limiting)...")
     all_series = []
     total_features = len(features)
     
@@ -54,6 +54,10 @@ def load_or_fetch_data(features, start_date, end_date):
         all_series.append(series)
     
     dataframe = pd.concat(all_series, axis=1)
+    
+    # Ensure index is datetime
+    if not isinstance(dataframe.index, pd.DatetimeIndex):
+        dataframe.index = pd.to_datetime(dataframe.index)
     
     # Save to cache
     print("Saving data to cache...")
@@ -69,6 +73,14 @@ features = ["RECPROUSM156N", "ACOILBRENTEU","ACOILWTICO","AHETPI","AISRSA","AUIN
 
 # Load or fetch data
 dataframe = load_or_fetch_data(features, start_date, current_month)
+
+# Convert data types and handle missing values
+dataframe = dataframe.apply(pd.to_numeric, errors='coerce')
+dataframe = dataframe.infer_objects()
+
+# Ensure we have a proper datetime index for interpolation
+if not isinstance(dataframe.index, pd.DatetimeIndex):
+    dataframe.index = pd.to_datetime(dataframe.index)
 
 # Interpolate Data
 dataframe = dataframe.interpolate(method='time', limit_direction='both')
@@ -113,17 +125,6 @@ plt.legend()
 plt.show()
 
 def make_future_forecast(model, last_known_values, n_future_steps):
-    """
-    Make future forecasts using the trained model
-    
-    Parameters:
-    model: trained LSTM model
-    last_known_values: the last known values of all features (normalized)
-    n_future_steps: number of future steps to predict
-    
-    Returns:
-    Array of predicted values
-    """
     future_predictions = []
     current_input = last_known_values.reshape(1, 1, -1)  # Reshape to match model input shape
     
