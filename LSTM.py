@@ -255,10 +255,9 @@ def make_future_forecast(model, last_known_values, n_future_steps):
     return np.array(future_predictions)
 
 # Get the last known values (all features except the target)
-last_known_values = dataset[-1]  # Use all features including the target
+last_known_values = dataset[-1] 
 
-# Make future predictions
-n_future_months = 3  # Changed from 12 to 3 months forecast
+n_future_months = 3 
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 # Create future dates for plotting
@@ -268,7 +267,7 @@ print(f"\nForecasting from {last_date.strftime('%Y-%m')} to {max_forecast_date.s
 
 future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
                            periods=n_future_months, 
-                           freq='ME')  # Using ME instead of M for month-end
+                           freq='ME') 
 
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
