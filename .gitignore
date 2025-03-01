@@ -2,3 +2,4 @@ Sibyl.egg-info/
 data/dataframe.dat
 .vscode/
 .DS_Store
+venv
