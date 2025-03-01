@@ -203,15 +203,21 @@ def make_future_forecast(model, last_known_values, n_future_steps):
     current_input = last_known_values.reshape(1, 1, -1)  # Reshape to match model input shape
     
     for _ in range(n_future_steps):
-        next_pred = model.predict(current_input)
+        # Make prediction
+        next_pred = model.predict(current_input, verbose=0)
         future_predictions.append(next_pred[0, 0])
-
-        current_input = current_input
+        
+        # Update the first feature (target) with our prediction
+        current_features = current_input[0, 0].copy()
+        current_features[0] = next_pred[0, 0]
+        
+        # Reshape for next prediction
+        current_input = current_features.reshape(1, 1, -1)
     
     return np.array(future_predictions)
 
 # Get the last known values (all features except the target)
-last_known_values = all_X[-1]
+last_known_values = dataset[-1]  # Use all features including the target
 
 # Make future predictions
 n_future_months = 12
