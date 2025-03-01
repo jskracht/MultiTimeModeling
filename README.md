@@ -1,13 +1,26 @@
 # Prediction Using Bayesian Structural Time Series
 Jeshua Kracht
 
-### Requirements:
+### Requirements
 Mac OS 12.x
 
-### Technical Problem:
+### Setup
+``` bash
+cd MultiTimeModeling
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -e .
+```
+
+### Run
+``` bash
+python3 LSTM.py
+```
+
+### Technical Problem
 The Federal Reserve has a huge amount of data on the economy of the United States containing information of varying accuracy, relevance, and completeness. Many times series contain vital data about the state of the economy, but do not tell the whole story by themselves. Often, in hindsight, many indicator variables forecasted recessions and depressions before the markets crashed. Detecting symptoms of impending recession across hundreds of time series can be difficult. Much of the available data is noisy and, because of the ever changing nature of the economy, each recession has a slightly different signature. The challenge is to intelligently pair down dimensions and dynamically recognize warning signs based on prior multivariate time series data values without overfitting to only recognize historical recessions. This problem space is applicable to a massive number of problems and, as such, my solution is generic enough to work with essentially any multivariate time series prediction problem.
 
-### DSDP Description:
+### DSDP Description
 1. Fill in missing and sparse data using Cubic Spline Interpolation.
 
 ![Cubic Spline Interpolation](Readme/Cubic_Spline_Interpolation.png)
@@ -89,7 +102,7 @@ Dashed Grey Vertical Line: Separation of Pre/Post Period
 
 ![Prediction Beyond Known](Readme/Prediction_Beyond_Known.png)
 
-### References:
+### References
 http://static.googleusercontent.com/media/research.google.com/en/pubs/archive/41854.pdf<br />
 http://statmath.wu.ac.at/research/talks/resources/slidesscott.pdf<br />
 https://research.stlouisfed.org/fred2/<br />
