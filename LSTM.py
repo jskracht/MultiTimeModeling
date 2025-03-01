@@ -101,9 +101,9 @@ def clean_and_validate_data(df):
             # Interpolate missing values within the series' own date range
             series = series.interpolate(method='time', limit_direction='both')
             
-            # Forward and backward fill any remaining gaps (limited to 3 months)
-            series = series.fillna(method='ffill', limit=3)
-            series = series.fillna(method='bfill', limit=3)
+            # Forward and backward fill any remaining gaps
+            series.ffill(limit=3)
+            series.bfill(limit=3)
             
             if not series.isna().any():  # Only keep series with no remaining NaNs
                 cleaned_series.append(series)
@@ -120,6 +120,19 @@ def clean_and_validate_data(df):
     
     return cleaned_df
 
+def make_future_forecast(model, last_known_values, n_future_steps):
+    future_predictions = []
+    current_input = last_known_values.reshape(1, 1, -1)  # Shape: (1, 1, features)
+    
+    for _ in range(n_future_steps):
+        next_pred = model.predict(current_input, verbose=0)
+        future_predictions.append(next_pred[0, 0])
+        
+        # Update the input for next prediction - keep the same features
+        current_input = current_input.copy()
+    
+    return np.array(future_predictions)
+
 
 
 features = ["RECPROUSM156N", "ACOILBRENTEU","ACOILWTICO","AHETPI","AISRSA","AUINSA","AWHAETP","BAA10Y","BUSINV","CANTOT","CBI","CDSP","CES0500000003","CEU0500000002","CEU0500000003","CEU0500000008","CHNTOT","CIVPART","CNP16OV","COMPNFB","COMPRNFB","COMREPUSQ159N","CPIAUCNS","CPIAUCSL","DCOILBRENTEU","DCOILWTICO","DDDM01USA156NWDB","DED1","DED3","DED6","DEXBZUS","DEXCAUS","DEXCHUS","DEXJPUS","DEXKOUS","DEXMXUS","DEXNOUS","DEXSDUS","DEXSFUS","DEXSIUS","DEXSZUS","DEXUSAL","DEXUSEU","DEXUSNZ","DEXUSUK","DGORDER","DGS10","DSPIC96","DSWP1","DSWP10","DSWP2","DSWP3","DSWP30","DSWP4","DSWP5","DSWP7","DTWEXB","DTWEXM","ECIWAG","ECOMNSA","ECOMSA","EECTOT","EMRATIO","ETOTALUSQ176N","EVACANTUSQ176N","FEDFUNDS","FRNTOT","FYFSGDA188S","GASREGCOVM","GASREGCOVW","GASREGM","GASREGW","GERTOT","HCOMPBS","HDTGPDUSQ163N","HOABS","HOANBS","HOUST","HPIPONM226N","HPIPONM226S","IC4WSA","INDPRO","INTDSRUSM193N","IPBUSEQ","IPDBS","IPMAN","IPMAT","IPMINE","IR","IR10010","IREXPET","ISRATIO","JCXFE","JPNTOT","JTS1000HIL","JTS1000HIR","JTSHIL","JTSHIR","JTSJOL","JTSJOR","JTSLDL","JTSLDR","JTSQUL","JTSQUR","JTSTSL","JTSTSR","JTU1000HIL","JTU1000HIR","JTUHIL","JTUHIR","JTUJOL","JTUJOR","JTULDL","JTULDR","JTUQUL","JTUQUR","JTUTSL","JTUTSR","LNS12032194","LNS12032196","LNS14027660","LNS15000000","LNU05026642","M12MTVUSM227NFWA","M2V","MCOILBRENTEU","MCOILWTICO","MCUMFN","MEHOINUSA646N","MEHOINUSA672N","MFGOPH","MFGPROD","MNFCTRIRNSA","MNFCTRIRSA","MNFCTRMPCSMNSA","MNFCTRMPCSMSA","MNFCTRSMNSA","MNFCTRSMSA","MYAGM2USM052N","MYAGM2USM052S","NILFWJN","NILFWJNN","NROU","NROUST","OPHMFG","OPHNFB","OPHPBS","OUTBS","OUTMS","OUTNFB","PAYEMS","PAYNSA","PCE","PCEPI","PCEPILFE","PCETRIM12M159SFRBDAL","PCETRIM1M158SFRBDAL","PNRESCON","PNRESCONS","POP","POPTHM","PPIACO","PRRESCON","PRRESCONS","PRS30006013", "PRS30006023","PRS84006013","PRS84006023","PRS84006163","PRS84006173","PRS85006023","PRS85006163","PRS85006173","RCPHBS","RETAILIMSA","RETAILIRSA","RETAILMPCSMNSA","RETAILMPCSMSA","RETAILSMNSA","RETAILSMSA","RHORUSQ156N","RIFLPCFANNM","RPI","RRSFS","RSAFS","RSAFSNA","RSAHORUSQ156S","RSEAS","RSFSXMV","RSNSR","RSXFS","T10Y2Y","T10Y3M","T10YFF","T10YIEM","T5YIEM","T5YIFR","TB3SMFFM","TCU","TDSP","TEDRATE","TLCOMCON","TLCOMCONS","TLNRESCON","TLNRESCONS","TLPBLCON","TLPBLCONS","TLPRVCON","TLPRVCONS","TLRESCON","TLRESCONS","TOTBUSIMNSA","TOTBUSIRNSA","TOTBUSMPCIMNSA","TOTBUSMPCIMSA","TOTBUSMPCSMNSA","TOTBUSMPCSMSA","TOTBUSSMNSA","TOTBUSSMSA","TOTDTEUSQ163N","TRFVOLUSM227NFWA","TTLCON","TTLCONS","U4RATE","U4RATENSA","U6RATE","U6RATENSA","UEMPMED","UKTOT","ULCBS","ULCMFG","ULCNFB","UNRATE","USAGDPDEFAISMEI","USAGDPDEFQISMEI","USAGFCFADSMEI","USAGFCFQDSMEI","USAGFCFQDSNAQ","USARECDM","USARGDPC","USASACRAISMEI","USASACRMISMEI","USASACRQISMEI","USPRIV","USRECD","USRECDM","USSLIND","USSTHPI","WCOILBRENTEU","WCOILWTICO","WHLSLRIRNSA","WHLSLRIRSA"]
@@ -128,13 +141,6 @@ dataframe = load_or_fetch_data(features, start_date, end_date)
 # Convert data types and handle missing values
 dataframe = dataframe.apply(pd.to_numeric, errors='coerce')
 dataframe = dataframe.infer_objects()
-
-# Ensure we have a proper datetime index for interpolation
-if not isinstance(dataframe.index, pd.DatetimeIndex):
-    dataframe.index = pd.to_datetime(dataframe.index)
-
-# Interpolate Data
-dataframe = dataframe.interpolate(method='time', limit_direction='both')
 
 # Normalize Dataset
 min_max_scaler = preprocessing.MinMaxScaler()
@@ -167,10 +173,6 @@ multi_step_model = tf.keras.models.Sequential([
 multi_step_model.compile(loss='binary_crossentropy',
                         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001))
 
-# Print model summary
-print("\nModel Summary:")
-multi_step_model.summary()
-
 # Train Model
 history = multi_step_model.fit(train_X, train_Y, 
                              epochs=30, 
@@ -186,7 +188,7 @@ test_dates = dataframe.index[split:]
 plt.figure(figsize=(15, 7))
 plt.plot(test_dates, test_Y * 100, label='Actual', color='blue')
 plt.plot(test_dates, prediction_Y * 100, label='Predicted', color='red', linestyle='--')
-plt.title('Full Historical Test Set Predictions vs Actual Values (1970-Present)')
+plt.title('Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
@@ -195,55 +197,42 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-def make_future_forecast(model, last_known_values, n_future_steps):
-    future_predictions = []
-    current_input = last_known_values.reshape(1, 1, -1)  # Shape: (1, 1, features)
-    
-    for _ in range(n_future_steps):
-        next_pred = model.predict(current_input, verbose=0)
-        future_predictions.append(next_pred[0, 0])
-        
-        # Update the input for next prediction - keep the same features
-        current_input = current_input.copy()
-    
-    return np.array(future_predictions)
+# # Get the last known values - only the features, not the target
+# last_known_values = test_X[-1] 
 
-# Get the last known values - only the features, not the target
-last_known_values = test_X[-1] 
+# # Make future predictions
+# n_future_months = 3
+# print("\nMaking future predictions...")
+# future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
-# Make future predictions
-n_future_months = 3
-print("\nMaking future predictions...")
-future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
+# # Create future dates for plotting
+# last_date = pd.to_datetime(dataframe.index[-1])
+# future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
+#                            periods=n_future_months, 
+#                            freq='ME')
 
-# Create future dates for plotting
-last_date = pd.to_datetime(dataframe.index[-1])
-future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
-                           periods=n_future_months, 
-                           freq='ME')
+# print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
 
-print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
+# # Plot historical data and future predictions
+# plt.figure(figsize=(15, 7))
 
-# Plot historical data and future predictions
-plt.figure(figsize=(15, 7))
+# # Use all historical data
+# historical_dates = pd.DatetimeIndex(dataframe.index)
+# historical_values = all_Y
 
-# Use all historical data
-historical_dates = pd.DatetimeIndex(dataframe.index)
-historical_values = all_Y
+# plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
+# plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
+# plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
+# plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
+# plt.xlabel('Date')
+# plt.ylabel('Probability of Recession (%)')
+# plt.legend()
+# plt.grid(True)
+# plt.xticks(rotation=45)
+# plt.tight_layout()
+# plt.show()
 
-plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
-plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
-plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
-plt.xlabel('Date')
-plt.ylabel('Probability of Recession (%)')
-plt.legend()
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-# Print the future predictions
-print("\nFuture predictions for the next {} months:".format(n_future_months))
-for date, pred in zip(future_dates, future_predictions):
-    print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
+# # Print the future predictions
+# print("\nFuture predictions for the next {} months:".format(n_future_months))
+# for date, pred in zip(future_dates, future_predictions):
+#     print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
