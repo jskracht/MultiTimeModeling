@@ -15,7 +15,7 @@ if not FRED_API_KEY:
 fred = Fred(api_key=FRED_API_KEY)
 
 DATA_CACHE_FILE = 'fred_data_cache.csv'
-RATE_LIMIT_DELAY = 0.5
+RATE_LIMIT_DELAY = 0.2
 
 # Function to fetch data for a single series with rate limiting
 def fetch_fred_series(series_id, start_date, end_date):
@@ -37,7 +37,6 @@ def fetch_fred_series(series_id, start_date, end_date):
         return pd.Series(name=series_id)
 
 def load_or_fetch_data(features, start_date, end_date):
-    """Load data from cache if available, otherwise fetch from FRED"""
     if os.path.exists(DATA_CACHE_FILE):
         print("Loading data from local cache...")
         try:
@@ -59,7 +58,6 @@ def load_or_fetch_data(features, start_date, end_date):
         else:
             print("Cache exists but needs updating...")
     
-    print("Fetching data from FRED (this may take a while due to rate limiting)...")
     all_series = []
     failed_series = []
     total_features = len(features)
@@ -93,7 +91,6 @@ def load_or_fetch_data(features, start_date, end_date):
     return dataframe
 
 def clean_and_validate_data(df):
-    """Clean and validate the dataframe by handling NaN values and removing problematic columns"""
     initial_cols = len(df.columns)
     
     # Calculate the percentage of NaN values in each column
