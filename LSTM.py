@@ -179,8 +179,8 @@ test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 
 # Build Model
 multi_step_model = tf.keras.models.Sequential([
-    tf.keras.layers.Input(shape=(train_X.shape[1], train_X.shape[2])),
-    tf.keras.layers.LSTM(16, return_sequences=False),
+    tf.keras.layers.Input(shape=(1, train_X.shape[2])),  # Explicitly specify input shape
+    tf.keras.layers.LSTM(64, return_sequences=False),     # Increase units to 64
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1, 
                          activation='sigmoid',
