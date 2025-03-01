@@ -28,8 +28,6 @@ def fetch_fred_series(series_id, start_date, end_date):
         except Exception as freq_error:
             data = fred.get_series(series_id, start_date=start_date, end_date=end_date)
             data = data.asfreq('ME', method='ffill') 
-            # If there are still NaN values, interpolate them
-            data = data.interpolate(method='time')
 
         return pd.Series(data, name=series_id)
     except Exception as e:
@@ -157,10 +155,7 @@ def validate_date_range(df, start_date, end_date):
     
     return filtered_df
 
-# Load or fetch data
 dataframe = load_or_fetch_data(features, start_date, end_date)
-
-# Validate and filter date range
 dataframe = validate_date_range(dataframe, start_date, end_date)
 
 # Convert data types and handle missing values
