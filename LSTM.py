@@ -197,18 +197,25 @@ test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 
 # Build Model
 multi_step_model = tf.keras.models.Sequential([
-    tf.keras.layers.Input(shape=(1, train_X.shape[2])),
-    tf.keras.layers.LSTM(256, return_sequences=False),
+    tf.keras.layers.LSTM(256, input_shape=(1, train_X.shape[2]), return_sequences=False),
     tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(1, 
-                         activation='sigmoid',
-                         kernel_regularizer=tf.keras.regularizers.l2(0.01))
+    tf.keras.layers.Dense(1, activation='sigmoid')
 ])
-multi_step_model.compile(loss='binary_crossentropy', 
+
+multi_step_model.compile(loss='binary_crossentropy',
                         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001))
 
+# Print model summary
+print("\nModel Summary:")
+multi_step_model.summary()
+
 # Train Model
-multi_step_model.fit(train_X, train_Y, epochs=30, batch_size=12, validation_data=(test_X, test_Y), verbose=2, shuffle=False)
+history = multi_step_model.fit(train_X, train_Y, 
+                             epochs=30, 
+                             batch_size=12,
+                             validation_data=(test_X, test_Y),
+                             verbose=2,
+                             shuffle=False)
 
 # Make Test Prediction
 prediction_Y = multi_step_model.predict(test_X)
@@ -216,17 +223,11 @@ prediction_Y = multi_step_model.predict(test_X)
 # Convert start_date to datetime for comparison
 start_datetime = pd.to_datetime(start_date)
 
-# Filter data from start_date onwards for test set visualization
-test_dates = pd.DatetimeIndex(dataframe.index[split:])
-test_dates_mask = test_dates >= start_datetime
-filtered_test_dates = test_dates[test_dates_mask]
-filtered_test_Y = test_Y[test_dates_mask]
-filtered_prediction_Y = prediction_Y[test_dates_mask]
-
-plt.figure(figsize=(12, 6))
-plt.plot(filtered_test_dates, filtered_test_Y * 100, label='Actual', color='blue')
-plt.plot(filtered_test_dates, filtered_prediction_Y * 100, label='Predicted', color='red', linestyle='--')
-plt.title('Test Set Predictions vs Actual Values')
+# Plot the full test set predictions
+plt.figure(figsize=(15, 7))
+plt.plot(test_dates, test_Y * 100, label='Actual', color='blue')
+plt.plot(test_dates, prediction_Y * 100, label='Predicted', color='red', linestyle='--')
+plt.title('Full Historical Test Set Predictions vs Actual Values (1970-Present)')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
@@ -237,51 +238,45 @@ plt.show()
 
 def make_future_forecast(model, last_known_values, n_future_steps):
     future_predictions = []
-    current_input = last_known_values.reshape(1, 1, -1)  # Reshape to match model input shape
+    current_input = last_known_values.reshape(1, 1, -1)  # Shape: (batch_size, timesteps, features)
     
     for _ in range(n_future_steps):
         # Make prediction
         next_pred = model.predict(current_input, verbose=0)
-        future_predictions.append(next_pred[0, 0])
+        future_predictions.append(next_pred[0])
         
-        # Update the first feature (target) with our prediction
-        current_features = current_input[0, 0].copy()
-        current_features[0] = next_pred[0, 0]
-        
-        # Reshape for next prediction
-        current_input = current_features.reshape(1, 1, -1)
+        # Keep input shape consistent for next prediction
+        current_input = current_input.copy()
     
     return np.array(future_predictions)
 
-# Get the last known values (all features except the target)
-last_known_values = dataset[-1] 
+# Get the last known values
+last_known_values = dataset[-1]
 
-n_future_months = 3 
+# Make future predictions
+n_future_months = 3
+print("\nMaking future predictions...")
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 # Create future dates for plotting
 last_date = pd.to_datetime(dataframe.index[-1])
-max_forecast_date = last_date + pd.DateOffset(months=n_future_months)
-print(f"\nForecasting from {last_date.strftime('%Y-%m')} to {max_forecast_date.strftime('%Y-%m')}")
-
 future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
                            periods=n_future_months, 
-                           freq='ME') 
+                           freq='ME')
+
+print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
 
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
 
-# Filter historical data - show last 24 months for better visualization
+# Use all historical data
 historical_dates = pd.DatetimeIndex(dataframe.index)
-last_24_months = last_date - pd.DateOffset(months=24)
-historical_dates_mask = historical_dates >= last_24_months
-filtered_historical_dates = historical_dates[historical_dates_mask]
-filtered_historical_values = all_Y[historical_dates_mask]
+historical_values = all_Y
 
-plt.plot(filtered_historical_dates, filtered_historical_values * 100, label='Historical Data', color='blue')
+plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title('Last 24 Months and 3-Month Forecast')
+plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
@@ -293,4 +288,4 @@ plt.show()
 # Print the future predictions
 print("\nFuture predictions for the next {} months:".format(n_future_months))
 for date, pred in zip(future_dates, future_predictions):
-    print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
+    print(f"{date.strftime('%Y-%m')}: {pred[0]*100:.2f}%")
