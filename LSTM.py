@@ -99,6 +99,10 @@ def load_or_fetch_data(features, start_date, end_date):
     return dataframe
 
 def clean_and_validate_data(df):
+    # Filter to only include data from 1970 to present
+    current_date = pd.Timestamp.now()
+    df = df[(df.index >= '1970-01-01') & (df.index <= current_date)]
+    
     initial_cols = len(df.columns)
     cleaned_series = []
     
