@@ -37,26 +37,45 @@ def fetch_fred_series(series_id, start_date, end_date):
         return pd.Series(name=series_id)
 
 def load_or_fetch_data(features, start_date, end_date):
+    """Load data from cache if available, otherwise fetch from FRED"""
     if os.path.exists(DATA_CACHE_FILE):
         print("Loading data from local cache...")
-        cached_data = pd.read_csv(DATA_CACHE_FILE)
-        cached_data['date'] = pd.to_datetime(cached_data['date'])
-        cached_data.set_index('date', inplace=True)
+        try:
+            # First try loading with date as index
+            cached_data = pd.read_csv(DATA_CACHE_FILE, index_col=0, parse_dates=True)
+        except Exception:
+            # If that fails, try loading with date as a column
+            cached_data = pd.read_csv(DATA_CACHE_FILE)
+            if 'date' in cached_data.columns:
+                cached_data['date'] = pd.to_datetime(cached_data['date'])
+                cached_data.set_index('date', inplace=True)
+            else:
+                raise ValueError("Cache file does not contain date information")
         
         # Check if we need to update the cache
         if cached_data.index[-1].strftime('%Y-%m-%d') >= end_date:
             print("Cache is up to date!")
-            return cached_data
+            return clean_and_validate_data(cached_data)
         else:
             print("Cache exists but needs updating...")
     
+    print("Fetching data from FRED (this may take a while due to rate limiting)...")
     all_series = []
+    failed_series = []
     total_features = len(features)
     
     for i, series_id in enumerate(features, 1):
         print(f"Fetching {series_id} ({i}/{total_features})...")
         series = fetch_fred_series(series_id, start_date, end_date)
+        if series.empty or series.isna().all():
+            failed_series.append(series_id)
+            continue
         all_series.append(series)
+    
+    if failed_series:
+        print("\nWarning: The following series failed to fetch or contained no data:")
+        for series_id in failed_series:
+            print(f"- {series_id}")
     
     dataframe = pd.concat(all_series, axis=1)
     
@@ -64,11 +83,50 @@ def load_or_fetch_data(features, start_date, end_date):
     if not isinstance(dataframe.index, pd.DatetimeIndex):
         dataframe.index = pd.to_datetime(dataframe.index)
     
-    # Save to cache
+    # Clean and validate before saving
+    dataframe = clean_and_validate_data(dataframe)
+    
+    # Save to cache with date as index
     print("Saving data to cache...")
     dataframe.to_csv(DATA_CACHE_FILE)
     
     return dataframe
+
+def clean_and_validate_data(df):
+    """Clean and validate the dataframe by handling NaN values and removing problematic columns"""
+    initial_cols = len(df.columns)
+    
+    # Calculate the percentage of NaN values in each column
+    nan_percentages = df.isna().mean() * 100
+    
+    # Remove columns with more than 50% NaN values
+    columns_to_drop = nan_percentages[nan_percentages > 50].index
+    if len(columns_to_drop) > 0:
+        print("\nWarning: Removing columns with more than 50% missing values:")
+        for col in columns_to_drop:
+            print(f"- {col}: {nan_percentages[col]:.1f}% missing")
+        df = df.drop(columns=columns_to_drop)
+    
+    # For remaining columns, interpolate missing values
+    df = df.interpolate(method='time', limit_direction='both')
+    
+    # Forward fill any remaining NaN values at the start
+    df = df.fillna(method='bfill')
+    # Backward fill any remaining NaN values at the end
+    df = df.fillna(method='ffill')
+    
+    # Check if any NaN values remain
+    remaining_nans = df.isna().sum()
+    if remaining_nans.any():
+        print("\nWarning: Some columns still contain NaN values after interpolation:")
+        for col in remaining_nans[remaining_nans > 0].index:
+            print(f"- {col}: {remaining_nans[col]} NaN values")
+    
+    final_cols = len(df.columns)
+    if initial_cols != final_cols:
+        print(f"\nRemoved {initial_cols - final_cols} problematic columns. {final_cols} columns remaining.")
+    
+    return df
 
 # Pull Raw Data
 current_month = datetime.now().strftime('%Y-%m-%d')
