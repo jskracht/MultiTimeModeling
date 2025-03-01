@@ -220,8 +220,8 @@ history = multi_step_model.fit(train_X, train_Y,
 # Make Test Prediction
 prediction_Y = multi_step_model.predict(test_X)
 
-# Convert start_date to datetime for comparison
-start_datetime = pd.to_datetime(start_date)
+# Get test dates from the dataframe index
+test_dates = dataframe.index[split:]
 
 # Plot the full test set predictions
 plt.figure(figsize=(15, 7))
