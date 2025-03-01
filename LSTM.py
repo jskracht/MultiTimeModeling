@@ -15,7 +15,7 @@ if not FRED_API_KEY:
 fred = Fred(api_key=FRED_API_KEY)
 
 DATA_CACHE_FILE = 'fred_data_cache.csv'
-RATE_LIMIT_DELAY = 0.2
+RATE_LIMIT_DELAY = 0.25
 
 # Function to fetch data for a single series with rate limiting
 def fetch_fred_series(series_id, start_date, end_date):
