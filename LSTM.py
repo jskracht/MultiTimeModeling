@@ -200,42 +200,42 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# # Get the last known values - only the features, not the target
-# last_known_values = test_X[-1] 
+# Get the last known values - only the features, not the target
+last_known_values = test_X[-1] 
 
-# # Make future predictions
-# n_future_months = 3
-# print("\nMaking future predictions...")
-# future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
+# Make future predictions
+n_future_months = 3
+print("\nMaking future predictions...")
+future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
-# # Create future dates for plotting
-# last_date = pd.to_datetime(dataframe.index[-1])
-# future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
-#                            periods=n_future_months, 
-#                            freq='ME')
+# Create future dates for plotting
+last_date = pd.to_datetime(dataframe.index[-1])
+future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
+                           periods=n_future_months, 
+                           freq='ME')
 
-# print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
+print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
 
-# # Plot historical data and future predictions
-# plt.figure(figsize=(15, 7))
+# Plot historical data and future predictions
+plt.figure(figsize=(15, 7))
 
-# # Use all historical data
-# historical_dates = pd.DatetimeIndex(dataframe.index)
-# historical_values = all_Y
+# Use all historical data
+historical_dates = pd.DatetimeIndex(dataframe.index)
+historical_values = all_Y
 
-# plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
-# plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
-# plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-# plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
-# plt.xlabel('Date')
-# plt.ylabel('Probability of Recession (%)')
-# plt.legend()
-# plt.grid(True)
-# plt.xticks(rotation=45)
-# plt.tight_layout()
-# plt.show()
+plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
+plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
+plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
+plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
+plt.xlabel('Date')
+plt.ylabel('Probability of Recession (%)')
+plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
 
-# # Print the future predictions
-# print("\nFuture predictions for the next {} months:".format(n_future_months))
-# for date, pred in zip(future_dates, future_predictions):
-#     print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
+# Print the future predictions
+print("\nFuture predictions for the next {} months:".format(n_future_months))
+for date, pred in zip(future_dates, future_predictions):
+    print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
