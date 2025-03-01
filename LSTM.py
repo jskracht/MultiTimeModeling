@@ -47,7 +47,7 @@ def load_or_fetch_data(features, start_date, end_date):
         cached_data = cached_data[start_date:end_date]
         print(f"After filtering: {cached_data.index.min()} to {cached_data.index.max()}\n")
         
-        if cached_data.index[-1].strftime('%Y-%m-%d') >= end_date:
+        if cached_data.index[-1] >= (pd.to_datetime(end_date) - pd.DateOffset(months=1)):
             print("Cache is up to date!")
             return clean_and_validate_data(cached_data)
         else:
@@ -208,7 +208,9 @@ last_known_values = test_X[-1]
 n_future_months = 3
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
-# Create future dates for plotting
+num_rows = len(dataframe)
+date_range = pd.date_range(start=start_date, periods=num_rows, freq='M')
+dataframe.index = date_range
 last_date = pd.to_datetime(dataframe.index[-1])
 future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
                            periods=n_future_months, 
