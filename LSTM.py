@@ -137,10 +137,6 @@ def clean_and_validate_data(df):
     if initial_cols != final_cols:
         print(f"\nRemoved {initial_cols - final_cols} problematic columns. {final_cols} columns remaining.")
     
-    print(f"\nFinal dataset shape: {cleaned_df.shape}")
-    print(f"Date range: {cleaned_df.index.min()} to {cleaned_df.index.max()}")
-    print(f"Number of months: {len(cleaned_df)}")
-    
     return cleaned_df
 
 # Pull Raw Data
@@ -221,10 +217,7 @@ history = multi_step_model.fit(train_X, train_Y,
                              verbose=2,
                              shuffle=False)
 
-# Make Test Prediction
 prediction_Y = multi_step_model.predict(test_X)
-
-# Get test dates from the dataframe index
 test_dates = dataframe.index[split:]
 
 # Plot the full test set predictions
@@ -254,7 +247,7 @@ def make_future_forecast(model, last_known_values, n_future_steps):
     return np.array(future_predictions)
 
 # Get the last known values - only the features, not the target
-last_known_values = test_X[-1]  # Shape: (1, features)
+last_known_values = test_X[-1] 
 
 # Make future predictions
 n_future_months = 3
