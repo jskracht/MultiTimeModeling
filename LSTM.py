@@ -108,9 +108,9 @@ def clean_and_validate_data(df):
     df = df.interpolate(method='time', limit_direction='both')
     
     # Forward fill any remaining NaN values at the start
-    df = df.fillna(method='bfill')
+    df = df.bfill()
     # Backward fill any remaining NaN values at the end
-    df = df.fillna(method='ffill')
+    df = df.ffill()
     
     # Check if any NaN values remain
     remaining_nans = df.isna().sum()
@@ -167,9 +167,11 @@ train_X = train_X.reshape(train_X.shape[0], 1, train_X.shape[1])
 test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 
 # Build Model
-multi_step_model = tf.keras.models.Sequential()
-multi_step_model.add(tf.keras.layers.LSTM(20, input_shape=(train_X.shape[1], train_X.shape[2])))
-multi_step_model.add(tf.keras.layers.Dense(1))
+multi_step_model = tf.keras.models.Sequential([
+    tf.keras.layers.Input(shape=(train_X.shape[1], train_X.shape[2])),
+    tf.keras.layers.LSTM(20),
+    tf.keras.layers.Dense(1)
+])
 multi_step_model.compile(loss='mae', optimizer='adam')
 
 # Train Model
