@@ -76,7 +76,9 @@ def load_or_fetch_data(features, start_date, end_date):
     if not isinstance(dataframe.index, pd.DatetimeIndex):
         dataframe.index = pd.to_datetime(dataframe.index)
     
-    print(f"\nCombined dataset date range: {dataframe.index.min()} to {dataframe.index.max()}")
+    dataframe = dataframe.resample('M').mean() 
+
+    print(f"\nCombined dataset date range after resampling: {dataframe.index.min()} to {dataframe.index.max()}")
     
     dataframe = clean_and_validate_data(dataframe)
     
