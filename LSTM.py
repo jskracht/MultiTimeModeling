@@ -142,7 +142,6 @@ start_date = "1970-01-01"
 end_date = current_month  # Add explicit end date
 
 def validate_date_range(df, start_date, end_date):
-    """Validate and filter dataframe to be within specified date range"""
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
     
@@ -256,7 +255,7 @@ def make_future_forecast(model, last_known_values, n_future_steps):
 last_known_values = dataset[-1]  # Use all features including the target
 
 # Make future predictions
-n_future_months = 12  # Limit to 12 months forecast
+n_future_months = 3  # Changed from 12 to 3 months forecast
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 # Create future dates for plotting
@@ -271,16 +270,17 @@ future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1),
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
 
-# Filter historical data from start_date onwards
+# Filter historical data - show last 24 months for better visualization
 historical_dates = pd.DatetimeIndex(dataframe.index)
-historical_dates_mask = historical_dates >= start_datetime
+last_24_months = last_date - pd.DateOffset(months=24)
+historical_dates_mask = historical_dates >= last_24_months
 filtered_historical_dates = historical_dates[historical_dates_mask]
 filtered_historical_values = all_Y[historical_dates_mask]
 
 plt.plot(filtered_historical_dates, filtered_historical_values * 100, label='Historical Data', color='blue')
-plt.plot(future_dates, future_predictions * 100, label='Future Forecast', color='red', linestyle='--')
+plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title(f'Historical Data and {n_future_months}-Month Forecast')
+plt.title('Last 24 Months and 3-Month Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
