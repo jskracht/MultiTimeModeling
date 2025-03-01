@@ -180,10 +180,15 @@ multi_step_model.fit(train_X, train_Y, epochs=30, batch_size=12, validation_data
 # Make Test Prediction
 prediction_Y = multi_step_model.predict(test_X)
 plt.figure(figsize=(12, 6))
-plt.plot(test_Y, label='actual')
-plt.plot(prediction_Y, label='predicted')
+plt.plot(dataframe.index[split:], test_Y * 100, label='Actual', color='blue')
+plt.plot(dataframe.index[split:], prediction_Y * 100, label='Predicted', color='red', linestyle='--')
 plt.title('Test Set Predictions vs Actual Values')
+plt.xlabel('Date')
+plt.ylabel('Probability of Recession (%)')
 plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
 plt.show()
 
 def make_future_forecast(model, last_known_values, n_future_steps):
@@ -205,17 +210,25 @@ last_known_values = all_X[-1]
 n_future_months = 12
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
+# Create future dates for plotting
+last_date = dataframe.index[-1]
+future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), periods=n_future_months, freq='M')
+
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
-plt.plot(range(len(all_Y)), all_Y, label='Historical Data', color='blue')
-plt.plot(range(len(all_Y), len(all_Y) + n_future_months), future_predictions, 
-         label='Future Forecast', color='red', linestyle='--')
-plt.axvline(x=len(all_Y)-1, color='gray', linestyle='--', alpha=0.5)
+plt.plot(dataframe.index, all_Y * 100, label='Historical Data', color='blue')
+plt.plot(future_dates, future_predictions * 100, label='Future Forecast', color='red', linestyle='--')
+plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
 plt.title('Historical Data and Future Forecast')
+plt.xlabel('Date')
+plt.ylabel('Probability of Recession (%)')
 plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
 plt.show()
 
 # Print the future predictions
 print("\nFuture predictions for the next {} months:".format(n_future_months))
-for i, pred in enumerate(future_predictions, 1):
-    print(f"Month {i}: {pred:.4f}")
+for i, (date, pred) in enumerate(zip(future_dates, future_predictions), 1):
+    print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
