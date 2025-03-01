@@ -203,9 +203,7 @@ plt.show()
 # Get the last known values - only the features, not the target
 last_known_values = test_X[-1] 
 
-# Make future predictions
 n_future_months = 3
-print("\nMaking future predictions...")
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 # Create future dates for plotting
@@ -218,15 +216,9 @@ print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strf
 
 # Plot historical data and future predictions
 plt.figure(figsize=(15, 7))
-
-# Use all historical data
-historical_dates = pd.DatetimeIndex(dataframe.index)
-historical_values = all_Y
-
-plt.plot(historical_dates, historical_values * 100, label='Historical Data', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='3-Month Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title('Full Historical Data (1970-Present) and 3-Month Forecast')
+plt.title('3-Month Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
