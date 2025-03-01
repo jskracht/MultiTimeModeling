@@ -138,12 +138,29 @@ def clean_and_validate_data(df):
 
 # Pull Raw Data
 current_month = datetime.now().strftime('%Y-%m-%d')
-start_date = "1970-01-01"  # Changed back to original start date
+start_date = "1970-01-01"
+end_date = current_month  # Add explicit end date
 
-features = ["RECPROUSM156N", "ACOILBRENTEU","ACOILWTICO","AHETPI","AISRSA","AUINSA","AWHAETP","BAA10Y","BUSINV","CANTOT","CBI","CDSP","CES0500000003","CEU0500000002","CEU0500000003","CEU0500000008","CHNTOT","CIVPART","CNP16OV","COMPNFB","COMPRNFB","COMREPUSQ159N","CPIAUCNS","CPIAUCSL","DCOILBRENTEU","DCOILWTICO","DDDM01USA156NWDB","DED1","DED3","DED6","DEXBZUS","DEXCAUS","DEXCHUS","DEXJPUS","DEXKOUS","DEXMXUS","DEXNOUS","DEXSDUS","DEXSFUS","DEXSIUS","DEXSZUS","DEXUSAL","DEXUSEU","DEXUSNZ","DEXUSUK","DGORDER","DGS10","DSPIC96","DSWP1","DSWP10","DSWP2","DSWP3","DSWP30","DSWP4","DSWP5","DSWP7","DTWEXB","DTWEXM","ECIWAG","ECOMNSA","ECOMSA","EECTOT","EMRATIO","ETOTALUSQ176N","EVACANTUSQ176N","FEDFUNDS","FRNTOT","FYFSGDA188S","GASREGCOVM","GASREGCOVW","GASREGM","GASREGW","GERTOT","HCOMPBS","HDTGPDUSQ163N","HOABS","HOANBS","HOUST","HPIPONM226N","HPIPONM226S","IC4WSA","INDPRO","INTDSRUSM193N","IPBUSEQ","IPDBS","IPMAN","IPMAT","IPMINE","IR","IR10010","IREXPET","ISRATIO","JCXFE","JPNTOT","JTS1000HIL","JTS1000HIR","JTSHIL","JTSHIR","JTSJOL","JTSJOR","JTSLDL","JTSLDR","JTSQUL","JTSQUR","JTSTSL","JTSTSR","JTU1000HIL","JTU1000HIR","JTUHIL","JTUHIR","JTUJOL","JTUJOR","JTULDL","JTULDR","JTUQUL","JTUQUR","JTUTSL","JTUTSR","LNS12032194","LNS12032196","LNS14027660","LNS15000000","LNU05026642","M12MTVUSM227NFWA","M2V","MCOILBRENTEU","MCOILWTICO","MCUMFN","MEHOINUSA646N","MEHOINUSA672N","MFGOPH","MFGPROD","MNFCTRIRNSA","MNFCTRIRSA","MNFCTRMPCSMNSA","MNFCTRMPCSMSA","MNFCTRSMNSA","MNFCTRSMSA","MYAGM2USM052N","MYAGM2USM052S","NILFWJN","NILFWJNN","NROU","NROUST","OPHMFG","OPHNFB","OPHPBS","OUTBS","OUTMS","OUTNFB","PAYEMS","PAYNSA","PCE","PCEPI","PCEPILFE","PCETRIM12M159SFRBDAL","PCETRIM1M158SFRBDAL","PNRESCON","PNRESCONS","POP","POPTHM","PPIACO","PRRESCON","PRRESCONS","PRS30006013", "PRS30006023","PRS84006013","PRS84006023","PRS84006163","PRS84006173","PRS85006023","PRS85006163","PRS85006173","RCPHBS","RETAILIMSA","RETAILIRSA","RETAILMPCSMNSA","RETAILMPCSMSA","RETAILSMNSA","RETAILSMSA","RHORUSQ156N","RIFLPCFANNM","RPI","RRSFS","RSAFS","RSAFSNA","RSAHORUSQ156S","RSEAS","RSFSXMV","RSNSR","RSXFS","T10Y2Y","T10Y3M","T10YFF","T10YIEM","T5YIEM","T5YIFR","TB3SMFFM","TCU","TDSP","TEDRATE","TLCOMCON","TLCOMCONS","TLNRESCON","TLNRESCONS","TLPBLCON","TLPBLCONS","TLPRVCON","TLPRVCONS","TLRESCON","TLRESCONS","TOTBUSIMNSA","TOTBUSIRNSA","TOTBUSMPCIMNSA","TOTBUSMPCIMSA","TOTBUSMPCSMNSA","TOTBUSMPCSMSA","TOTBUSSMNSA","TOTBUSSMSA","TOTDTEUSQ163N","TRFVOLUSM227NFWA","TTLCON","TTLCONS","U4RATE","U4RATENSA","U6RATE","U6RATENSA","UEMPMED","UKTOT","ULCBS","ULCMFG","ULCNFB","UNRATE","USAGDPDEFAISMEI","USAGDPDEFQISMEI","USAGFCFADSMEI","USAGFCFQDSMEI","USAGFCFQDSNAQ","USARECDM","USARGDPC","USASACRAISMEI","USASACRMISMEI","USASACRQISMEI","USPRIV","USRECD","USRECDM","USSLIND","USSTHPI","WCOILBRENTEU","WCOILWTICO","WHLSLRIRNSA","WHLSLRIRSA"]
+def validate_date_range(df, start_date, end_date):
+    """Validate and filter dataframe to be within specified date range"""
+    start = pd.to_datetime(start_date)
+    end = pd.to_datetime(end_date)
+    
+    # Filter data to be within bounds
+    mask = (df.index >= start) & (df.index <= end)
+    filtered_df = df.loc[mask]
+    
+    print(f"\nData range validation:")
+    print(f"Original date range: {df.index.min()} to {df.index.max()}")
+    print(f"Filtered date range: {filtered_df.index.min()} to {filtered_df.index.max()}")
+    
+    return filtered_df
 
 # Load or fetch data
-dataframe = load_or_fetch_data(features, start_date, current_month)
+dataframe = load_or_fetch_data(features, start_date, end_date)
+
+# Validate and filter date range
+dataframe = validate_date_range(dataframe, start_date, end_date)
 
 # Convert data types and handle missing values
 dataframe = dataframe.apply(pd.to_numeric, errors='coerce')
@@ -239,11 +256,14 @@ def make_future_forecast(model, last_known_values, n_future_steps):
 last_known_values = dataset[-1]  # Use all features including the target
 
 # Make future predictions
-n_future_months = 12
+n_future_months = 12  # Limit to 12 months forecast
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 # Create future dates for plotting
-last_date = pd.to_datetime(dataframe.index[-1])  # Ensure last_date is datetime
+last_date = pd.to_datetime(dataframe.index[-1])
+max_forecast_date = last_date + pd.DateOffset(months=n_future_months)
+print(f"\nForecasting from {last_date.strftime('%Y-%m')} to {max_forecast_date.strftime('%Y-%m')}")
+
 future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
                            periods=n_future_months, 
                            freq='ME')  # Using ME instead of M for month-end
@@ -260,7 +280,7 @@ filtered_historical_values = all_Y[historical_dates_mask]
 plt.plot(filtered_historical_dates, filtered_historical_values * 100, label='Historical Data', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='Future Forecast', color='red', linestyle='--')
 plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
-plt.title('Historical Data and Future Forecast')
+plt.title(f'Historical Data and {n_future_months}-Month Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
