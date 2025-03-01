@@ -186,7 +186,7 @@ multi_step_model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
 
-multi_step_model.compile(loss='binary_crossentropy',
+multi_step_model.compile(loss='mean_squared_error',
                          optimizer=tf.keras.optimizers.Adam(learning_rate=0.001))
 
 history = multi_step_model.fit(train_X, train_Y, 
