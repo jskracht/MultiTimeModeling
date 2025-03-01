@@ -30,10 +30,7 @@ def fetch_fred_series(series_id, start_date, end_date):
             data = data.asfreq('ME', method='ffill') 
             # If there are still NaN values, interpolate them
             data = data.interpolate(method='time')
-        
-        if not data.empty:
-            print(f"Series {series_id} date range: {data.index.min()} to {data.index.max()}")
-        
+
         return pd.Series(data, name=series_id)
     except Exception as e:
         print(f"Error fetching {series_id}: {str(e)}")
@@ -104,17 +101,6 @@ def load_or_fetch_data(features, start_date, end_date):
 def clean_and_validate_data(df):
     initial_cols = len(df.columns)
     
-    # Calculate the percentage of NaN values in each column
-    nan_percentages = df.isna().mean() * 100
-    
-    # Remove columns with more than 95% NaN values
-    columns_to_drop = nan_percentages[nan_percentages > 95].index
-    if len(columns_to_drop) > 0:
-        print("\nWarning: Removing columns with more than 95% missing values:")
-        for col in columns_to_drop:
-            print(f"- {col}: {nan_percentages[col]:.1f}% missing")
-        df = df.drop(columns=columns_to_drop)
-    
     # Find the earliest valid date and latest valid date for each column
     earliest_dates = {}
     latest_dates = {}
@@ -151,10 +137,6 @@ def clean_and_validate_data(df):
     if initial_cols != final_cols:
         print(f"\nRemoved {initial_cols - final_cols} problematic columns. {final_cols} columns remaining.")
     
-    print(f"\nFinal dataset shape: {df.shape}")
-    print(f"Date range: {df.index.min()} to {df.index.max()}")
-    print(f"Number of months: {len(df)}")
-    
     return df
 
 # Pull Raw Data
@@ -166,18 +148,12 @@ end_date = current_month
 features = ["RECPROUSM156N", "ACOILBRENTEU","ACOILWTICO","AHETPI","AISRSA","AUINSA","AWHAETP","BAA10Y","BUSINV","CANTOT","CBI","CDSP","CES0500000003","CEU0500000002","CEU0500000003","CEU0500000008","CHNTOT","CIVPART","CNP16OV","COMPNFB","COMPRNFB","COMREPUSQ159N","CPIAUCNS","CPIAUCSL","DCOILBRENTEU","DCOILWTICO","DDDM01USA156NWDB","DED1","DED3","DED6","DEXBZUS","DEXCAUS","DEXCHUS","DEXJPUS","DEXKOUS","DEXMXUS","DEXNOUS","DEXSDUS","DEXSFUS","DEXSIUS","DEXSZUS","DEXUSAL","DEXUSEU","DEXUSNZ","DEXUSUK","DGORDER","DGS10","DSPIC96","DSWP1","DSWP10","DSWP2","DSWP3","DSWP30","DSWP4","DSWP5","DSWP7","DTWEXB","DTWEXM","ECIWAG","ECOMNSA","ECOMSA","EECTOT","EMRATIO","ETOTALUSQ176N","EVACANTUSQ176N","FEDFUNDS","FRNTOT","FYFSGDA188S","GASREGCOVM","GASREGCOVW","GASREGM","GASREGW","GERTOT","HCOMPBS","HDTGPDUSQ163N","HOABS","HOANBS","HOUST","HPIPONM226N","HPIPONM226S","IC4WSA","INDPRO","INTDSRUSM193N","IPBUSEQ","IPDBS","IPMAN","IPMAT","IPMINE","IR","IR10010","IREXPET","ISRATIO","JCXFE","JPNTOT","JTS1000HIL","JTS1000HIR","JTSHIL","JTSHIR","JTSJOL","JTSJOR","JTSLDL","JTSLDR","JTSQUL","JTSQUR","JTSTSL","JTSTSR","JTU1000HIL","JTU1000HIR","JTUHIL","JTUHIR","JTUJOL","JTUJOR","JTULDL","JTULDR","JTUQUL","JTUQUR","JTUTSL","JTUTSR","LNS12032194","LNS12032196","LNS14027660","LNS15000000","LNU05026642","M12MTVUSM227NFWA","M2V","MCOILBRENTEU","MCOILWTICO","MCUMFN","MEHOINUSA646N","MEHOINUSA672N","MFGOPH","MFGPROD","MNFCTRIRNSA","MNFCTRIRSA","MNFCTRMPCSMNSA","MNFCTRMPCSMSA","MNFCTRSMNSA","MNFCTRSMSA","MYAGM2USM052N","MYAGM2USM052S","NILFWJN","NILFWJNN","NROU","NROUST","OPHMFG","OPHNFB","OPHPBS","OUTBS","OUTMS","OUTNFB","PAYEMS","PAYNSA","PCE","PCEPI","PCEPILFE","PCETRIM12M159SFRBDAL","PCETRIM1M158SFRBDAL","PNRESCON","PNRESCONS","POP","POPTHM","PPIACO","PRRESCON","PRRESCONS","PRS30006013", "PRS30006023","PRS84006013","PRS84006023","PRS84006163","PRS84006173","PRS85006023","PRS85006163","PRS85006173","RCPHBS","RETAILIMSA","RETAILIRSA","RETAILMPCSMNSA","RETAILMPCSMSA","RETAILSMNSA","RETAILSMSA","RHORUSQ156N","RIFLPCFANNM","RPI","RRSFS","RSAFS","RSAFSNA","RSAHORUSQ156S","RSEAS","RSFSXMV","RSNSR","RSXFS","T10Y2Y","T10Y3M","T10YFF","T10YIEM","T5YIEM","T5YIFR","TB3SMFFM","TCU","TDSP","TEDRATE","TLCOMCON","TLCOMCONS","TLNRESCON","TLNRESCONS","TLPBLCON","TLPBLCONS","TLPRVCON","TLPRVCONS","TLRESCON","TLRESCONS","TOTBUSIMNSA","TOTBUSIRNSA","TOTBUSMPCIMNSA","TOTBUSMPCIMSA","TOTBUSMPCSMNSA","TOTBUSMPCSMSA","TOTBUSSMNSA","TOTBUSSMSA","TOTDTEUSQ163N","TRFVOLUSM227NFWA","TTLCON","TTLCONS","U4RATE","U4RATENSA","U6RATE","U6RATENSA","UEMPMED","UKTOT","ULCBS","ULCMFG","ULCNFB","UNRATE","USAGDPDEFAISMEI","USAGDPDEFQISMEI","USAGFCFADSMEI","USAGFCFQDSMEI","USAGFCFQDSNAQ","USARECDM","USARGDPC","USASACRAISMEI","USASACRMISMEI","USASACRQISMEI","USPRIV","USRECD","USRECDM","USSLIND","USSTHPI","WCOILBRENTEU","WCOILWTICO","WHLSLRIRNSA","WHLSLRIRSA"]
 
 def validate_date_range(df, start_date, end_date):
-    """Validate and filter dataframe to be within specified date range"""
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
     
     # Filter data to be within bounds
     mask = (df.index >= start) & (df.index <= end)
     filtered_df = df.loc[mask]
-    
-    print(f"\nData range validation:")
-    print(f"Requested range: {start} to {end}")
-    print(f"Available range: {filtered_df.index.min()} to {filtered_df.index.max()}")
-    print(f"Number of months in dataset: {len(filtered_df)}")
     
     return filtered_df
 
