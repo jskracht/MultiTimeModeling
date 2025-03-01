@@ -100,44 +100,44 @@ def load_or_fetch_data(features, start_date, end_date):
 
 def clean_and_validate_data(df):
     initial_cols = len(df.columns)
+    cleaned_series = []
     
-    # Find the earliest valid date and latest valid date for each column
-    earliest_dates = {}
-    latest_dates = {}
     for col in df.columns:
-        valid_dates = df[col].dropna().index
+        series = df[col].copy()
+        # Find valid date range for this series
+        valid_dates = series.dropna().index
         if not valid_dates.empty:
-            earliest_dates[col] = valid_dates[0]
-            latest_dates[col] = valid_dates[-1]
-            print(f"Series {col}: {earliest_dates[col]} to {latest_dates[col]}")
+            start_date = valid_dates[0]
+            end_date = valid_dates[-1]
+            
+            # Only keep data between first and last valid dates
+            series = series[start_date:end_date]
+            
+            # Interpolate missing values within the series' own date range
+            series = series.interpolate(method='time', limit_direction='both')
+            
+            # Forward and backward fill any remaining gaps (limited to 3 months)
+            series = series.fillna(method='ffill', limit=3)
+            series = series.fillna(method='bfill', limit=3)
+            
+            if not series.isna().any():  # Only keep series with no remaining NaNs
+                cleaned_series.append(series)
+                print(f"Series {col}: {start_date} to {end_date}")
+            else:
+                print(f"Dropping {col} due to remaining NaN values")
     
-    # Find the latest start date and earliest end date among all columns
-    latest_start = max(earliest_dates.values())
-    earliest_end = min(latest_dates.values())
-    print(f"\nUsing common date range: {latest_start} to {earliest_end}")
+    # Combine all cleaned series
+    cleaned_df = pd.concat(cleaned_series, axis=1)
     
-    # Trim data to only include the period where all series have data
-    df = df[(df.index >= latest_start) & (df.index <= earliest_end)]
-    
-    # For remaining data, interpolate missing values only within the valid range
-    df = df.interpolate(method='time', limit_direction='forward')
-    
-    # Forward fill any remaining NaN values, but only within the valid range
-    df = df.ffill()
-    df = df.bfill()
-    
-    # Check if any NaN values remain
-    remaining_nans = df.isna().sum()
-    if remaining_nans.any():
-        print("\nWarning: Some columns still contain NaN values after interpolation:")
-        for col in remaining_nans[remaining_nans > 0].index:
-            print(f"- {col}: {remaining_nans[col]} NaN values")
-    
-    final_cols = len(df.columns)
+    final_cols = len(cleaned_df.columns)
     if initial_cols != final_cols:
         print(f"\nRemoved {initial_cols - final_cols} problematic columns. {final_cols} columns remaining.")
     
-    return df
+    print(f"\nFinal dataset shape: {cleaned_df.shape}")
+    print(f"Date range: {cleaned_df.index.min()} to {cleaned_df.index.max()}")
+    print(f"Number of months: {len(cleaned_df)}")
+    
+    return cleaned_df
 
 # Pull Raw Data
 current_month = datetime.now().strftime('%Y-%m-%d')
@@ -238,20 +238,19 @@ plt.show()
 
 def make_future_forecast(model, last_known_values, n_future_steps):
     future_predictions = []
-    current_input = last_known_values.reshape(1, 1, -1)  # Shape: (batch_size, timesteps, features)
+    current_input = last_known_values.reshape(1, 1, -1)  # Shape: (1, 1, features)
     
     for _ in range(n_future_steps):
-        # Make prediction
         next_pred = model.predict(current_input, verbose=0)
-        future_predictions.append(next_pred[0])
+        future_predictions.append(next_pred[0, 0])
         
-        # Keep input shape consistent for next prediction
+        # Update the input for next prediction - keep the same features
         current_input = current_input.copy()
     
     return np.array(future_predictions)
 
-# Get the last known values
-last_known_values = dataset[-1]
+# Get the last known values - only the features, not the target
+last_known_values = test_X[-1]  # Shape: (1, features)
 
 # Make future predictions
 n_future_months = 3
@@ -288,4 +287,4 @@ plt.show()
 # Print the future predictions
 print("\nFuture predictions for the next {} months:".format(n_future_months))
 for date, pred in zip(future_dates, future_predictions):
-    print(f"{date.strftime('%Y-%m')}: {pred[0]*100:.2f}%")
+    print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
