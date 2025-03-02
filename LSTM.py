@@ -208,7 +208,7 @@ plt.show()
 
 
 last_known_values = test_X[-1] 
-n_future_months = 12
+n_future_months = 3
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 num_rows = len(dataframe)
