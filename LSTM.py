@@ -183,7 +183,6 @@ test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 multi_step_model = tf.keras.models.Sequential()
 multi_step_model.add(tf.keras.layers.LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2]), return_sequences=True))
 multi_step_model.add(tf.keras.layers.Dropout(0.2))
-multi_step_model.add(tf.keras.layers.LSTM(20))
 multi_step_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
 multi_step_model.compile(loss='mae', optimizer='adam')
 
