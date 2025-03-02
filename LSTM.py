@@ -229,5 +229,5 @@ plt.legend()
 plt.show()
 
 print("\nFuture predictions for the next {} months:".format(n_future_months))
-for date, pred in zip(future_dates, future_predictions):
+for date, pred in zip(future_dates, future_predictions.flatten()):
     print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
