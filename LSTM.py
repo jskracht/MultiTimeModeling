@@ -220,8 +220,6 @@ future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1),
                               periods=n_future_months, 
                               freq='ME')
 
-print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
-
 plt.figure(figsize=(15, 7))
 plt.plot(dataframe.index[-len(test_Y):], test_Y * 100, label='Actual', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='Forecast', color='red', linestyle='--')
