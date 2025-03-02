@@ -7,6 +7,7 @@ import numpy as np
 from sklearn import preprocessing
 from datetime import datetime
 from fredapi import Fred
+# from pybuc import buc
 
 FRED_API_KEY = os.getenv('FRED_API_KEY')
 if not FRED_API_KEY:
@@ -206,7 +207,6 @@ plt.ylabel('Probability of Recession (%)')
 plt.legend()
 plt.show()
 
-
 last_known_values = test_X[-1] 
 n_future_months = 3
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
@@ -231,3 +231,29 @@ plt.show()
 print("\nFuture predictions for the next {} months:".format(n_future_months))
 for date, pred in zip(future_dates, future_predictions.flatten()):
     print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
+
+# TODO
+# def fit_buc_model(data):
+#     response_data = data.values.reshape(-1, 1) 
+#     model = buc.BayesianUnobservedComponents(response_data, level=True) 
+#     posterior_samples = model.sample(num_samp=1000)
+    
+#     future_steps = 3
+#     predictions = model.forecast(future_steps)
+    
+#     return predictions
+
+# bsts_predictions = fit_buc_model(dataframe)
+
+# plt.figure(figsize=(15, 7))
+# plt.plot(dataframe.index[-len(test_Y):], test_Y * 100, label='Actual', color='blue')
+# plt.plot(future_dates, bsts_predictions * 100, label='BSTS Forecast', color='orange', linestyle='--')
+# plt.title('BSTS Forecast vs Actual')
+# plt.xlabel('Date')
+# plt.ylabel('Probability of Recession (%)')
+# plt.legend()
+# plt.show()
+
+# print("\nBSTS future predictions for the next {} months:".format(n_future_months))
+# for date, pred in zip(future_dates, bsts_predictions.flatten()):
+#     print(f"{date.strftime('%Y-%m')}: {pred*100:.2f}%")
