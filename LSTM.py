@@ -160,50 +160,45 @@ features = [
 
 dataframe = load_or_fetch_data(features, start_date, end_date)
 
-dataframe = dataframe.apply(pd.to_numeric, errors='coerce')
-dataframe = dataframe.infer_objects()
-
 min_max_scaler = preprocessing.MinMaxScaler()
 np_scaled = min_max_scaler.fit_transform(dataframe)
 dataframe = pd.DataFrame(np_scaled, columns=dataframe.columns)
-dataset = dataframe.values
 
-split = int(len(dataset) * 0.8)
-train = dataset[:split, :]
-test = dataset[split:, :]
-all_X = dataset[:, 1:]
-all_Y = dataset[:, 0]
 
+split = int(len(dataframe.values) * 0.8)
+train = dataframe.values[:split, :]
+test = dataframe.values[split:, :]
+all_X = dataframe.values[:, 1:]
+all_Y = dataframe.values[:, 0]
+
+# Split Data Into Inputs and Output
 train_X, train_Y = train[:, 1:], train[:, 0]
 test_X, test_Y = test[:, 1:], test[:, 0]
 
+# Reshape Input to be 3D [Samples, Timesteps, Features]
 train_X = train_X.reshape(train_X.shape[0], 1, train_X.shape[1])
 test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1])
 
-multi_step_model = tf.keras.models.Sequential([
-    tf.keras.layers.LSTM(256, input_shape=(1, train_X.shape[2]), return_sequences=False),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(1, activation='sigmoid')
-])
+# Build Model
+multi_step_model = tf.keras.models.Sequential()
+multi_step_model.add(tf.keras.layers.LSTM(20, input_shape=(train_X.shape[1], train_X.shape[2])))
+multi_step_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+multi_step_model.compile(loss='mae', optimizer='adam')
 
-multi_step_model.compile(loss='mean_squared_error',
-                         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001))
+# Train Model
+multi_step_model.fit(train_X, train_Y, epochs=30, batch_size=12, validation_data=(test_X, test_Y), verbose=2, shuffle=False)
 
-history = multi_step_model.fit(train_X, train_Y, 
-                               epochs=30, 
-                               batch_size=12,
-                               validation_data=(test_X, test_Y),
-                               verbose=2,
-                               shuffle=False)
-
+# After making predictions
 prediction_Y = multi_step_model.predict(test_X)
 
-prediction = np.full_like(all_Y, np.nan, dtype=np.float32)
-prediction[len(train_Y):] = prediction_Y.flatten()
+# Create a full prediction array to hold all values
+full_prediction = np.full_like(all_Y, np.nan, dtype=np.float32)
+full_prediction[len(train_Y):len(train_Y) + len(prediction_Y)] = prediction_Y.flatten()
 
 plt.figure(figsize=(15, 7))
-plt.plot(dataframe.index, all_Y * 100, label='Actual', color='blue')
-plt.plot(dataframe.index, prediction * 100, label='Predicted', color='red', linestyle='--')
+plt.plot(dataframe.index, all_Y * 100, label='Actual', color='blue')  # Plot all actual data
+plt.plot(dataframe.index[:len(train_Y)], train_Y * 100, label='Training', color='green')  # Plot training data
+plt.plot(dataframe.index[len(train_Y):len(train_Y) + len(prediction_Y)], full_prediction[len(train_Y):] * 100, label='Prediction', color='red', linestyle='--')  # Plot predictions for test set
 plt.title('Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
