@@ -196,9 +196,9 @@ full_prediction = np.full_like(all_Y, np.nan, dtype=np.float32)
 full_prediction[len(train_Y):len(train_Y) + len(prediction_Y)] = prediction_Y.flatten()
 
 plt.figure(figsize=(15, 7))
-plt.plot(dataframe.index, all_Y * 100, label='Actual', color='blue')  # Plot all actual data
-plt.plot(dataframe.index[:len(train_Y)], train_Y * 100, label='Training', color='green')  # Plot training data
-plt.plot(dataframe.index[len(train_Y):len(train_Y) + len(prediction_Y)], full_prediction[len(train_Y):] * 100, label='Prediction', color='red', linestyle='--')  # Plot predictions for test set
+plt.plot(dataframe.index, all_Y * 100, label='Actual', color='blue')
+plt.plot(dataframe.index[:len(train_Y)], train_Y * 100, label='Training', color='green') 
+plt.plot(dataframe.index[len(train_Y):len(train_Y) + len(prediction_Y)], full_prediction[len(train_Y):] * 100, label='Prediction', color='red', linestyle='--')
 plt.title('Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
@@ -209,11 +209,11 @@ plt.tight_layout()
 plt.show()
 
 last_known_values = test_X[-1] 
-n_future_months = 3
+n_future_months = 12
 future_predictions = make_future_forecast(multi_step_model, last_known_values, n_future_months)
 
 num_rows = len(dataframe)
-date_range = pd.date_range(start=start_date, periods=num_rows, freq='M')
+date_range = pd.date_range(start=start_date, periods=num_rows, freq='ME')
 dataframe.index = date_range
 last_date = pd.to_datetime(dataframe.index[-1])
 future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1), 
@@ -223,8 +223,8 @@ future_dates = pd.date_range(start=last_date + pd.DateOffset(months=1),
 print(f"Forecasting from {last_date.strftime('%Y-%m')} to {future_dates[-1].strftime('%Y-%m')}")
 
 plt.figure(figsize=(15, 7))
+plt.plot(dataframe.index[-len(test_Y):], test_Y * 100, label='Actual', color='blue')
 plt.plot(future_dates, future_predictions * 100, label='Forecast', color='red', linestyle='--')
-plt.axvline(x=last_date, color='gray', linestyle='--', alpha=0.5, label='Present')
 plt.title('Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
