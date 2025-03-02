@@ -204,10 +204,8 @@ plt.title('Predictions vs Actual Values')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
 plt.show()
+
 
 last_known_values = test_X[-1] 
 n_future_months = 12
@@ -228,9 +226,6 @@ plt.title('Forecast')
 plt.xlabel('Date')
 plt.ylabel('Probability of Recession (%)')
 plt.legend()
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
 plt.show()
 
 print("\nFuture predictions for the next {} months:".format(n_future_months))
